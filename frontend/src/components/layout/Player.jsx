@@ -1,6 +1,8 @@
 import { useContext } from "react";
-import { assets } from "../assets/assets";
-import { PlayerContext } from "../context/PlayerContext";
+import { assets } from "../../assets/assets";
+import { PlayerContext } from "../../context/PlayerContext";
+import { formatTime } from "../../utils/formatTime";
+
 const Player = () => {
   const { seekBar, seekBg, playStatus, play, pause, track, time, previous, next, seekSong } =
     useContext(PlayerContext);
@@ -44,7 +46,7 @@ const Player = () => {
           <img className="w-4 cursor-pointer" src={assets.loop_icon} alt="" />
         </div>
         <div className="flex items-center gap-5">
-          <p>{time.currentTime.minute}:{time.currentTime.second}</p>
+          <p>{formatTime(time.currentTime)}</p>
           <div
             ref={seekBg}
             onClick={seekSong}
@@ -55,7 +57,7 @@ const Player = () => {
               className="h-1 border-none w-0 bg-green-800 rounded-full"
             />
           </div>
-          <p>{time.totalTime.minute}:{time.totalTime.second}</p>
+          <p>{formatTime(time.totalTime)}</p>
         </div>
       </div>
       <div className="hidden lg:flex items-center gap-2 opacity-75">

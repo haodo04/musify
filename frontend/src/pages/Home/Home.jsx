@@ -1,10 +1,9 @@
-import Navbar from "./Navbar"
-import { albumsData } from "../assets/assets"
-import AlbumItem from "./AlbumItem"
-import { songsData } from "../assets/assets"
-import SongItem from "./SongItem"
+import Navbar from "../../components/layout/Navbar"
+import { albumsData, songsData } from "../../assets/assets"
+import AlbumItem from "../../components/cards/AlbumItem"
+import SongItem from "../../components/cards/SongItem"
 
-const DisplayHome = () => {
+const Home = () => {
   return (
     <>
     <Navbar/>
@@ -26,4 +25,4 @@ const DisplayHome = () => {
   )
 }
 
-export default DisplayHome
+export default Home
