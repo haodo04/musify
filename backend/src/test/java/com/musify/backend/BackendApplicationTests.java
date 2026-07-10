@@ -1,4 +1,4 @@
-package dkhao.backend;
+package com.musify.backend;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
