@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+## config key file
+src/main/resources/application.properties
+src/main/resources/application-*.properties
+!src/main/resources/application.properties.example
