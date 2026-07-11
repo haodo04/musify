@@ -6,16 +6,19 @@ import { formatTime } from "../../utils/formatTime";
 const Player = () => {
   const { seekBar, seekBg, playStatus, play, pause, track, time, previous, next, seekSong } =
     useContext(PlayerContext);
+
+  if (!track) return null; 
+
   return (
     <div
       className="h-[10%] bg-black flex justify-between items-center
     text-white px-4"
     >
       <div className="hidden lg:flex items-center gap-4">
-        <img className="w-12" src={track.image} alt="song_Data" />
+        <img className="w-12" src={track.imageUrl} alt="song_Data" />
         <div>
-          <p>{track.name}</p>
-          <p className="">{track.desc.slice(0, 43)}</p>
+          <p>{track.title}</p>
+          <p className="text-[#a7a7a7] text-sm">{track.artist?.name}</p>
         </div>
       </div>
       <div className="flex flex-col items-center gap-1 m-auto">

@@ -1,5 +1,5 @@
 import { createContext, useEffect, useRef, useState } from "react";
-import { songsData } from "../assets/assets";
+import { getAllSongs } from "../services/songService";
 
 export const PlayerContext = createContext();
 
@@ -8,12 +8,26 @@ const PlayerContextProvider = (props) => {
   const seekBg = useRef();
   const seekBar = useRef();
 
-  const [track, setTrack] = useState(songsData[0]);
+  const [songsData, setSongsData] = useState([]);
+  const [track, setTrack] = useState(null);
   const [playStatus, setPlayStatus] = useState(false);
   const [time, setTime] = useState({
     currentTime: 0,
     totalTime: 0,
   });
+
+  useEffect(() => {
+    const fetchSongs = async () => {
+      try {
+        const data = await getAllSongs();
+        setSongsData(data);
+        if (data.length > 0) setTrack(data[0]); 
+      } catch (err) {
+        console.error("Loi khi tai danh sach bai hat:", err);
+      }
+    };
+    fetchSongs();
+  }, []);
 
   const play = () => {
     audioRef.current.play();
@@ -26,22 +40,26 @@ const PlayerContextProvider = (props) => {
   };
 
   const playWithId = async (id) => {
-    await setTrack(songsData[id]);
+    const song = songsData.find((s) => s.id === id);
+    if (!song) return;
+    setTrack(song);
     await audioRef.current.play();
     setPlayStatus(true);
   };
 
   const previous = async () => {
-    if (track.id > 0) {
-      await setTrack(songsData[track.id - 1]);
+    const currentIndex = songsData.findIndex((s) => s.id === track.id);
+    if (currentIndex > 0) {
+      setTrack(songsData[currentIndex - 1]);
       await audioRef.current.play();
       setPlayStatus(true);
     }
   };
 
   const next = async () => {
-    if (track.id < songsData.length - 1) {
-      await setTrack(songsData[track.id + 1]);
+    const currentIndex = songsData.findIndex((s) => s.id === track.id);
+    if (currentIndex < songsData.length - 1) {
+      setTrack(songsData[currentIndex + 1]);
       await audioRef.current.play();
       setPlayStatus(true);
     }
@@ -72,6 +90,7 @@ const PlayerContextProvider = (props) => {
     seekBar,
     track,
     setTrack,
+    songsData,
     playStatus,
     setPlayStatus,
     time,
