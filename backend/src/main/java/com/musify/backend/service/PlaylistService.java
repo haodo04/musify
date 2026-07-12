@@ -6,11 +6,13 @@ import com.musify.backend.dto.response.PlaylistResponse;
 import com.musify.backend.dto.response.SongResponse;
 import com.musify.backend.entity.*;
 import com.musify.backend.repository.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class PlaylistService {
 
     private final PlaylistRepository playlistRepository;
@@ -18,15 +20,6 @@ public class PlaylistService {
     private final SongRepository songRepository;
     private final UserRepository userRepository;
 
-    public PlaylistService(PlaylistRepository playlistRepository,
-                           PlaylistSongRepository playlistSongRepository,
-                           SongRepository songRepository,
-                           UserRepository userRepository) {
-        this.playlistRepository = playlistRepository;
-        this.playlistSongRepository = playlistSongRepository;
-        this.songRepository = songRepository;
-        this.userRepository = userRepository;
-    }
 
     public PlaylistResponse createPlaylist(String userEmail, PlaylistRequest request) {
         User user = userRepository.findByEmail(userEmail)

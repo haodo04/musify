@@ -1,21 +1,46 @@
 package com.musify.backend.service;
 
+import com.musify.backend.dto.request.AlbumRequest;
 import com.musify.backend.dto.response.AlbumResponse;
 import com.musify.backend.dto.response.ArtistResponse;
 import com.musify.backend.entity.Album;
+import com.musify.backend.entity.Artist;
 import com.musify.backend.repository.AlbumRepository;
+import com.musify.backend.repository.ArtistRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class AlbumService {
 
     private final AlbumRepository albumRepository;
+    private final ArtistRepository artistRepository;
+    private final CloudinaryService cloudinaryService;
 
-    public AlbumService(AlbumRepository albumRepository) {
-        this.albumRepository = albumRepository;
+    public AlbumResponse createAlbum(AlbumRequest request) throws IOException {
+        Artist artist = artistRepository.findById(request.getArtistId())
+                .orElseThrow(() -> new RuntimeException("Khong tim thay artist"));
+
+        String coverUrl = null;
+        if (request.getCoverFile() != null && !request.getCoverFile().isEmpty()) {
+            coverUrl = cloudinaryService.uploadImage(request.getCoverFile());
+        }
+
+        Album album = Album.builder()
+                .title(request.getTitle())
+                .coverUrl(coverUrl)
+                .releaseDate(request.getReleaseDate())
+                .artist(artist)
+                .build();
+
+        albumRepository.save(album);
+        return toResponse(album);
     }
+
 
     public List<AlbumResponse> getAllAlbums() {
         return albumRepository.findAll().stream()

@@ -1,19 +1,36 @@
 package com.musify.backend.service;
 
+import com.musify.backend.dto.request.ArtistRequest;
 import com.musify.backend.dto.response.ArtistResponse;
 import com.musify.backend.entity.Artist;
 import com.musify.backend.repository.ArtistRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ArtistService {
 
     private final ArtistRepository artistRepository;
+    private final CloudinaryService cloudinaryService;
 
-    public ArtistService(ArtistRepository artistRepository) {
-        this.artistRepository = artistRepository;
+    public ArtistResponse createArtist(ArtistRequest request) throws IOException {
+        String avatarUrl = null;
+        if (request.getAvatarFile() != null && !request.getAvatarFile().isEmpty()) {
+            avatarUrl = cloudinaryService.uploadImage(request.getAvatarFile());
+        }
+
+        Artist artist = Artist.builder()
+                .name(request.getName())
+                .bio(request.getBio())
+                .avatarUrl(avatarUrl)
+                .build();
+
+        artistRepository.save(artist);
+        return toResponse(artist);
     }
 
     public List<ArtistResponse> getAllArtists() {

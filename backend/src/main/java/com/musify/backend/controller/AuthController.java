@@ -4,18 +4,17 @@ import com.musify.backend.dto.request.LoginRequest;
 import com.musify.backend.dto.request.RegisterRequest;
 import com.musify.backend.dto.response.AuthResponse;
 import com.musify.backend.service.AuthService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
 
-    public AuthController(AuthService authService) {
-        this.authService = authService;
-    }
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
