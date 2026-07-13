@@ -1,37 +1,74 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/layout/Navbar";
+import SectionHeader from "../../components/layout/SectionHeader";
+import Footer from "../../components/layout/Footer";
 import AlbumItem from "../../components/cards/AlbumItem";
 import SongItem from "../../components/cards/SongItem";
-import { getAllAlbums } from "../../services/albumService";
-import { getAllSongs } from "../../services/songService";
+import ArtistItem from "../../components/cards/ArtistItem";
+import { getAllAlbums, getFeaturedCharts } from "../../services/albumService";
+import { getAllSongs, getTrendingSongs } from "../../services/songService";
 import { AuthContext } from "../../context/AuthContext";
+import { getRecentlyPlayedIds } from "../../utils/recentlyPlayed";
 
 const Home = () => {
   const [albums, setAlbums] = useState([]);
   const [songs, setSongs] = useState([]);
+  const [trendingSongs, setTrendingSongs] = useState([]);
+  const [charts, setCharts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const albumsData = await getAllAlbums();
-        const songsData = await getAllSongs();
+        setLoading(true);
+        const [albumsData, songsData, trendingData, chartsData] = await Promise.all([
+          getAllAlbums(),
+          getAllSongs(),
+          getTrendingSongs(),
+          getFeaturedCharts(),
+        ]);
         setAlbums(albumsData);
         setSongs(songsData);
+        setTrendingSongs(trendingData);
+        setCharts(chartsData);
       } catch (err) {
-        console.error("Loi khi tai du lieu Home:", err);
+        console.error("Lỗi khi tải dữ liệu Home:", err);
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
   }, []);
 
+  const artists = useMemo(() => {
+    const seen = new Set();
+    const result = [];
+    [...albums, ...songs].forEach((item) => {
+      const artist = item.artist;
+      if (artist && artist.id != null && !seen.has(artist.id)) {
+        seen.add(artist.id);
+        result.push({
+          id: artist.id,
+          name: artist.name,
+          image: artist.avatarUrl,
+        });
+      }
+    });
+    return result;
+  }, [albums, songs]);
+
+  const recentlyPlayed = useMemo(() => {
+    const ids = getRecentlyPlayedIds();
+    return ids.map((id) => songs.find((s) => s.id === id)).filter(Boolean);
+  }, [songs]);
+
   return (
     <>
       <Navbar />
 
-      {/* Banner bắt đầu */}
       <div className="mt-6 mb-8">
         <div className="flex items-center justify-between mb-4">
           <h1 className="font-bold text-2xl">Bắt đầu nghe nhạc</h1>
@@ -59,34 +96,102 @@ const Home = () => {
         </div>
       </div>
 
-      <div className="mb-4">
-        <h1 className="my-5 font-bold text-2xl">Album nổi bật</h1>
+      {user && recentlyPlayed.length > 0 && (
+        <div className="mb-8">
+          <SectionHeader title="Nghe gần đây" />
+          <div className="flex overflow-auto">
+            {recentlyPlayed.map((item) => (
+              <SongItem
+                key={item.id}
+                id={item.id}
+                name={item.title}
+                desc={item.artist?.name}
+                image={item.imageUrl}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="mb-8">
+        <SectionHeader title="Bài hát thịnh hành" seeAllPath="/trending" />
         <div className="flex overflow-auto">
-          {albums.map((item) => (
-            <AlbumItem
-              key={item.id}
-              id={item.id}
-              name={item.title}
-              desc={item.artist?.name}
-              image={item.coverUrl}
-            />
-          ))}
+          {loading ? (
+            <p className="text-gray-400 text-sm">Đang tải bài hát...</p>
+          ) : trendingSongs.length === 0 ? (
+            <p className="text-gray-400 text-sm">Chưa có bài hát nào</p>
+          ) : (
+            trendingSongs.map((item) => (
+              <SongItem
+                key={item.id}
+                id={item.id}
+                name={item.title}
+                desc={item.artist?.name}
+                image={item.imageUrl}
+              />
+            ))
+          )}
         </div>
       </div>
-      <div className="mb-4">
-        <h1 className="my-5 font-bold text-2xl">Bài hát thịnh hành</h1>
+
+      <div className="mb-8">
+        <SectionHeader title="Nghệ sĩ nổi bật" seeAllPath="/artists" />
         <div className="flex overflow-auto">
-          {songs.map((item) => (
-            <SongItem
-              key={item.id}
-              id={item.id}
-              name={item.title}
-              desc={item.artist?.name}
-              image={item.imageUrl}
-            />
-          ))}
+          {loading ? (
+            <p className="text-gray-400 text-sm">Đang tải nghệ sĩ...</p>
+          ) : artists.length === 0 ? (
+            <p className="text-gray-400 text-sm">Chưa có nghệ sĩ nào</p>
+          ) : (
+            artists.map((item) => (
+              <ArtistItem key={item.id} id={item.id} name={item.name} image={item.image} />
+            ))
+          )}
         </div>
       </div>
+
+      <div className="mb-8">
+        <SectionHeader title="Album và đĩa đơn nổi bật" seeAllPath="/albums" />
+        <div className="flex overflow-auto">
+          {loading ? (
+            <p className="text-gray-400 text-sm">Đang tải album...</p>
+          ) : albums.length === 0 ? (
+            <p className="text-gray-400 text-sm">Chưa có album nào</p>
+          ) : (
+            albums.map((item) => (
+              <AlbumItem
+                key={item.id}
+                id={item.id}
+                name={item.title}
+                desc={item.artist?.name}
+                image={item.coverUrl}
+              />
+            ))
+          )}
+        </div>
+      </div>
+
+      <div className="mb-8">
+        <SectionHeader title="Bảng xếp hạng nổi bật" seeAllPath="/charts" />
+        <div className="flex overflow-auto">
+          {loading ? (
+            <p className="text-gray-400 text-sm">Đang tải...</p>
+          ) : charts.length === 0 ? (
+            <p className="text-gray-400 text-sm">Chưa có dữ liệu xếp hạng</p>
+          ) : (
+            charts.map((item) => (
+              <AlbumItem
+                key={`chart-${item.id}`}
+                id={item.id}
+                name={item.title}
+                desc={item.artist?.name}
+                image={item.coverUrl}
+              />
+            ))
+          )}
+        </div>
+      </div>
+
+      <Footer />
     </>
   );
 };
