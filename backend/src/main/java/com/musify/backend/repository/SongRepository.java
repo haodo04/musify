@@ -7,5 +7,6 @@ import java.util.List;
 public interface SongRepository extends JpaRepository<Song, Long> {
     List<Song> findByAlbumId(Long albumId);
     List<Song> findByArtistId(Long artistId);
-    List<Song> findByTitleContainingIgnoreCase(String keyword); // dùng cho Search sau này
+    List<Song> findByTitleContainingIgnoreCase(String keyword);
+    List<Song> findTop10ByOrderByPlayCountDesc();
 }

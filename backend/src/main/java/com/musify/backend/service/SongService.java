@@ -11,6 +11,7 @@ import com.musify.backend.repository.ArtistRepository;
 import com.musify.backend.repository.SongRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.List;
@@ -94,5 +95,19 @@ public class SongService {
                 artistResponse,
                 albumId
         );
+    }
+
+    @Transactional
+    public void incrementPlayCount(Long songId) {
+        Song song = songRepository.findById(songId)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay song"));
+        song.setPlayCount(song.getPlayCount() + 1);
+        songRepository.save(song);
+    }
+
+    public List<SongResponse> getTrendingSongs() {
+        return songRepository.findTop10ByOrderByPlayCountDesc().stream()
+                .map(this::toResponse)
+                .toList();
     }
 }

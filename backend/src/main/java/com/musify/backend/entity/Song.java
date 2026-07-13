@@ -32,4 +32,8 @@ public class Song {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "album_id")
     private Album album;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Long playCount = 0L;
 }

@@ -58,4 +58,14 @@ public class SongController {
     public List<SongResponse> search(@RequestParam String keyword) {
         return songService.searchSongs(keyword);
     }
+
+    @PostMapping("/{id}/play")
+    public void recordPlay(@PathVariable Long id) {
+        songService.incrementPlayCount(id);
+    }
+
+    @GetMapping("/trending")
+    public List<SongResponse> getTrending() {
+        return songService.getTrendingSongs();
+    }
 }

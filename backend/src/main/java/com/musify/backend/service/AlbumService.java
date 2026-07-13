@@ -8,6 +8,7 @@ import com.musify.backend.entity.Artist;
 import com.musify.backend.repository.AlbumRepository;
 import com.musify.backend.repository.ArtistRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -67,5 +68,11 @@ public class AlbumService {
                 album.getReleaseDate(),
                 artistResponse
         );
+    }
+
+    public List<AlbumResponse> getFeaturedCharts() {
+        return albumRepository.findTopAlbumsByPlayCount(PageRequest.of(0, 10)).stream()
+                .map(this::toResponse)
+                .toList();
     }
 }

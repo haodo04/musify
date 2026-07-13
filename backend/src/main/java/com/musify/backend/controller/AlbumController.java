@@ -43,4 +43,9 @@ public class AlbumController {
     public AlbumResponse getAlbumById(@PathVariable Long id) {
         return albumService.getAlbumById(id);
     }
+
+    @GetMapping("/charts")
+    public List<AlbumResponse> getCharts() {
+        return albumService.getFeaturedCharts();
+    }
 }
