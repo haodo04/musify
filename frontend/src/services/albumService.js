@@ -9,3 +9,8 @@ export const getAlbumById = async (id) => {
   const res = await api.get(`/albums/${id}`);
   return res.data;
 };
+
+export const getFeaturedCharts = async () => {
+  const res = await api.get("/albums/charts");
+  return res.data;
+};

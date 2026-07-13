@@ -1,5 +1,6 @@
 import { createContext, useEffect, useRef, useState } from "react";
-import { getAllSongs } from "../services/songService";
+import { getAllSongs, recordPlay } from "../services/songService";
+import { addRecentlyPlayed } from "../utils/recentlyPlayed";
 
 export const PlayerContext = createContext();
 
@@ -48,6 +49,8 @@ const PlayerContextProvider = (props) => {
     if (!song) return;
     setTrack(song);
     setPlayStatus(true);
+    addRecentlyPlayed(id);
+    recordPlay(id);
   };
 
   const previous = async () => {
@@ -55,6 +58,7 @@ const PlayerContextProvider = (props) => {
     if (currentIndex > 0) {
       setTrack(songsData[currentIndex - 1]);
       setPlayStatus(true);
+      addRecentlyPlayed(songsData[currentIndex - 1].id);
     }
   };
 
@@ -63,6 +67,7 @@ const PlayerContextProvider = (props) => {
     if (currentIndex < songsData.length - 1) {
       setTrack(songsData[currentIndex + 1]);
       setPlayStatus(true);
+      addRecentlyPlayed(songsData[currentIndex + 1].id);
     }
   };
 
@@ -74,14 +79,12 @@ const PlayerContextProvider = (props) => {
     }
   };
 
-  // Khi track đổi và playStatus = true, tự phát bài mới (thay cho audioRef.current.play() rải rác)
   useEffect(() => {
     if (playStatus && audioRef.current) {
       audioRef.current.play();
     }
   }, [track]);
 
-  // Gán ontimeupdate ngay khi audioRef.current đã sẵn sàng (không phụ thuộc setTimeout cố định)
   useEffect(() => {
     if (!audioRef.current) return;
 
@@ -95,7 +98,7 @@ const PlayerContextProvider = (props) => {
         totalTime: audioRef.current.duration,
       });
     };
-  }, [track]); // chạy lại mỗi khi track đổi, vì lúc đó audio element chắc chắn đã mount (do track && (<audio.../>))
+  }, [track]);
 
   const contextValue = {
     audioRef,

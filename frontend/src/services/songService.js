@@ -19,3 +19,12 @@ export const searchSongs = async (keyword) => {
   const res = await api.get(`/songs/search`, { params: { keyword } });
   return res.data;
 };
+
+export const recordPlay = async (id) => {
+  await api.post(`/songs/${id}/play`);
+};
+
+export const getTrendingSongs = async () => {
+  const res = await api.get("/songs/trending");
+  return res.data;
+};
