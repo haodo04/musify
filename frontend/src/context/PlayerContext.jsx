@@ -22,7 +22,7 @@ const PlayerContextProvider = (props) => {
       try {
         const data = await getAllSongs();
         setSongsData(data);
-        if (data.length > 0) setTrack(data[0]);
+        // Bỏ setTrack(data[0]) — không tự phát khi load trang
       } catch (err) {
         console.error("Loi khi tai danh sach bai hat:", err);
       }
@@ -42,6 +42,16 @@ const PlayerContextProvider = (props) => {
       audioRef.current.pause();
       setPlayStatus(false);
     }
+  };
+
+  const clearTrack = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = "";
+    }
+    setTrack(null);
+    setPlayStatus(false);
+    setTime({ currentTime: 0, totalTime: 0 });
   };
 
   const playWithId = async (id) => {
@@ -80,14 +90,13 @@ const PlayerContextProvider = (props) => {
   };
 
   useEffect(() => {
-    if (playStatus && audioRef.current) {
+    if (playStatus && audioRef.current && track) {
       audioRef.current.play();
     }
   }, [track]);
 
   useEffect(() => {
     if (!audioRef.current) return;
-
     audioRef.current.ontimeupdate = () => {
       if (seekBar.current && audioRef.current.duration) {
         seekBar.current.style.width =
@@ -101,22 +110,13 @@ const PlayerContextProvider = (props) => {
   }, [track]);
 
   const contextValue = {
-    audioRef,
-    seekBg,
-    seekBar,
-    track,
-    setTrack,
+    audioRef, seekBg, seekBar,
+    track, setTrack,
     songsData,
-    playStatus,
-    setPlayStatus,
-    time,
-    setTime,
-    play,
-    pause,
-    playWithId,
-    previous,
-    next,
-    seekSong,
+    playStatus, setPlayStatus,
+    time, setTime,
+    play, pause, clearTrack,
+    playWithId, previous, next, seekSong,
   };
 
   return (

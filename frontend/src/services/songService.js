@@ -20,11 +20,27 @@ export const searchSongs = async (keyword) => {
   return res.data;
 };
 
+export const getTrendingSongs = async () => {
+  const res = await api.get("/songs/trending");
+  return res.data;
+};
+
 export const recordPlay = async (id) => {
   await api.post(`/songs/${id}/play`);
 };
 
-export const getTrendingSongs = async () => {
-  const res = await api.get("/songs/trending");
+export const uploadSong = async (title, genre, duration, artistId, albumId, audioFile, imageFile) => {
+  const formData = new FormData();
+  formData.append("title", title);
+  formData.append("genre", genre);
+  formData.append("duration", duration);
+  formData.append("artistId", artistId);
+  if (albumId) formData.append("albumId", albumId);
+  formData.append("audioFile", audioFile);
+  if (imageFile) formData.append("imageFile", imageFile);
+
+  const res = await api.post("/songs/upload", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
   return res.data;
 };

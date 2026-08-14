@@ -73,6 +73,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/songs/**", "/api/albums/**", "/api/artists/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/songs/*/play").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/songs/upload").permitAll()  // bypass
+                        .requestMatchers(HttpMethod.POST, "/api/artists").permitAll()   // bypass
+                        .requestMatchers(HttpMethod.POST, "/api/albums").permitAll() // bypass
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

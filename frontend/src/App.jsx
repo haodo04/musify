@@ -8,22 +8,25 @@ import Sidebar from "./components/layout/Sidebar"
 import { PlayerContext } from "./context/PlayerContext"
 
 const App = () => {
-  const {audioRef,track} = useContext(PlayerContext)
+  const { audioRef, track } = useContext(PlayerContext)
   const location = useLocation();
   const isAuthPage = location.pathname === "/login" || location.pathname === "/register";
+  const isAdminPage = location.pathname === "/admin";
 
   if (isAuthPage) {
-    return <AuthLayout/>;
+    return <AuthLayout />;
   }
 
   return (
     <div className="h-screen bg-black flex flex-col">
-      <TopBar/>
+      <TopBar />
       <div className="flex-1 flex overflow-hidden">
-        <Sidebar/>
-        <MainLayout/>
+        {!isAdminPage && <Sidebar />}
+        <MainLayout />
       </div>
-      <Player/>
+
+      {(!isAdminPage || track) && <Player />}
+
       {track && (
         <audio ref={audioRef} src={track.audioUrl} preload="auto"></audio>
       )}
