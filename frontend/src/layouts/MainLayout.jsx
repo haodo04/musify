@@ -21,7 +21,7 @@ const MainLayout = () => {
   return (
     <div
       ref={displayRef}
-      className={`m-2 px-6 pt-4 rounded bg-[#121212] text-white overflow-auto
+      className={`m-2 px-6 pt-4 rounded bg-[#121212] text-white overflow-y-auto custom-scrollbar
         ${isAdminPage ? "w-[calc(100%-1rem)]" : "w-[100%] lg:w-[75%] lg:ml-0"}`}
     >
       <Routes>
