@@ -1,3 +1,4 @@
+import axios from "axios";
 import api from "./api";
 
 export const getAllSongs = async () => {
@@ -43,4 +44,14 @@ export const uploadSong = async (title, genre, duration, artistId, albumId, audi
     headers: { "Content-Type": "multipart/form-data" },
   });
   return res.data;
+};
+
+export const getSongsByArtist = async (artistId) => {
+  try {
+    const res = await api.get(`/songs/artist/${artistId}`);
+    return res.data;
+  } catch (error) {
+    console.error("Lỗi khi lấy bài hát của nghệ sĩ:", error);
+    return []; 
+  }
 };

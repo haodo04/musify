@@ -1,3 +1,4 @@
+import axios from "axios";
 import api from "./api";
 
 export const getAllArtists = async () => {
@@ -15,4 +16,24 @@ export const createArtist = async (name, bio, avatarFile) => {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return res.data;
+};
+
+export const getArtistById = async (id) => {
+  try {
+    const response = await axios.get(`http://localhost:8080/api/artists/${id}`); 
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi khi lấy thông tin chi tiết nghệ sĩ:", error);
+    throw error;
+  }
+};
+
+export const getSongsByArtist = async (artistId) => {
+  try {
+    const res = await api.get(`/songs/artist/${artistId}`);
+    return res.data;
+  } catch (error) {
+    console.error("Lỗi khi lấy bài hát của nghệ sĩ:", error);
+    return []; 
+  }
 };
