@@ -6,6 +6,7 @@ import Playlist from "../pages/Playlist/Playlist"
 import ProtectedRoute from "../routes/ProtectedRoute"
 import Admin from "../pages/Admin/Admin"
 import { useEffect, useRef } from "react"
+import Artist from "../pages/Artist/Artist"
 
 const MainLayout = () => {
   const displayRef = useRef();
@@ -33,6 +34,7 @@ const MainLayout = () => {
         <Route path="/playlist/:id" element={
           <ProtectedRoute><Playlist /></ProtectedRoute>
         } />
+        <Route path="/artist/:id" element={<Artist />} />
         <Route path="/admin" element={<Admin />} />
       </Routes>
     </div>
