@@ -111,4 +111,12 @@ public class SongService {
                 .map(this::toResponse)
                 .toList();
     }
+
+    public List<SongResponse> getSongsByArtistId(Long artistId) {
+        List<Song> songs = songRepository.findByArtistId(artistId);
+
+        return songs.stream()
+                .map(this::toResponse)
+                .toList();
+    }
 }

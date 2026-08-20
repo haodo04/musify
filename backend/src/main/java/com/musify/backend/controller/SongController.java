@@ -68,4 +68,9 @@ public class SongController {
     public List<SongResponse> getTrending() {
         return songService.getTrendingSongs();
     }
+
+    @GetMapping("/artist/{artistId}")
+    public List<SongResponse> getSongsByArtist(@PathVariable Long artistId) {
+        return songService.getSongsByArtistId(artistId);
+    }
 }
