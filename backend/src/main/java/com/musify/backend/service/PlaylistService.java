@@ -85,7 +85,8 @@ public class PlaylistService {
                     ArtistResponse artistResponse = new ArtistResponse(
                             song.getArtist().getId(),
                             song.getArtist().getName(),
-                            song.getArtist().getAvatarUrl()
+                            song.getArtist().getAvatarUrl(),
+                            song.getArtist().getBio()
                     );
                     Long albumId = song.getAlbum() != null ? song.getAlbum().getId() : null;
                     return new SongResponse(

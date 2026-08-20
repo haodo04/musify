@@ -46,6 +46,6 @@ public class ArtistService {
     }
 
     private ArtistResponse toResponse(Artist artist) {
-        return new ArtistResponse(artist.getId(), artist.getName(), artist.getAvatarUrl());
+        return new ArtistResponse(artist.getId(), artist.getName(), artist.getAvatarUrl(), artist.getBio());
     }
 }

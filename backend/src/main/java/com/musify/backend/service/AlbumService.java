@@ -59,7 +59,8 @@ public class AlbumService {
         ArtistResponse artistResponse = new ArtistResponse(
                 album.getArtist().getId(),
                 album.getArtist().getName(),
-                album.getArtist().getAvatarUrl()
+                album.getArtist().getAvatarUrl(),
+                album.getArtist().getBio()
         );
         return new AlbumResponse(
                 album.getId(),
