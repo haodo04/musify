@@ -21,12 +21,14 @@ public class ArtistController {
     public ArtistResponse createArtist(
             @RequestParam String name,
             @RequestParam(required = false) String bio,
-            @RequestParam(required = false) MultipartFile avatarFile) throws IOException {
+            @RequestParam(required = false) MultipartFile avatarFile,
+            @RequestParam(required = false) MultipartFile bannerFile) throws IOException {
 
         ArtistRequest request = new ArtistRequest();
         request.setName(name);
         request.setBio(bio);
         request.setAvatarFile(avatarFile);
+        request.setBannerFile(bannerFile);
 
         return artistService.createArtist(request);
     }

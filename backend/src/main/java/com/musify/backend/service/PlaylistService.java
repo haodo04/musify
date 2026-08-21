@@ -86,6 +86,7 @@ public class PlaylistService {
                             song.getArtist().getId(),
                             song.getArtist().getName(),
                             song.getArtist().getAvatarUrl(),
+                            song.getArtist().getBannerUrl(),
                             song.getArtist().getBio()
                     );
                     Long albumId = song.getAlbum() != null ? song.getAlbum().getId() : null;

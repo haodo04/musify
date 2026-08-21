@@ -60,6 +60,7 @@ public class AlbumService {
                 album.getArtist().getId(),
                 album.getArtist().getName(),
                 album.getArtist().getAvatarUrl(),
+                album.getArtist().getBannerUrl(),
                 album.getArtist().getBio()
         );
         return new AlbumResponse(

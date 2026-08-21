@@ -8,5 +8,6 @@ public class ArtistResponse {
     private Long id;
     private String name;
     private String avatarUrl;
+    private String bannerUrl;
     private String bio;
 }

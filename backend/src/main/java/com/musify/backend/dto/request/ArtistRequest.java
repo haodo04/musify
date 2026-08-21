@@ -9,4 +9,5 @@ public class ArtistRequest {
     private String name;
     private String bio;
     private MultipartFile avatarFile;
+    private MultipartFile bannerFile;
 }

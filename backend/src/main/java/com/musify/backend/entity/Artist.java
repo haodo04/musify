@@ -20,6 +20,8 @@ public class Artist {
 
     private String avatarUrl;
 
+    private String bannerUrl;
+
     @Column(columnDefinition = "TEXT")
     private String bio;
 
