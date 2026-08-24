@@ -17,6 +17,9 @@ const PlayerContextProvider = (props) => {
     totalTime: 0,
   });
 
+  const [volume, setVolume] = useState(1);
+  const previousVolumeRef = useRef(1);
+
   useEffect(() => {
     const fetchSongs = async () => {
       try {
@@ -89,6 +92,37 @@ const PlayerContextProvider = (props) => {
     }
   };
 
+  // Áp dụng volume mỗi khi state thay đổi (kéo thanh hoặc bấm mute)
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
+    }
+  }, [volume]);
+
+  // Bài mới load xong (audio element có thể reset), đảm bảo giữ đúng volume hiện tại
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
+    }
+  }, [track]);
+
+  const changeVolume = (value) => {
+    const clamped = Math.min(1, Math.max(0, value));
+    setVolume(clamped);
+    if (clamped > 0) {
+      previousVolumeRef.current = clamped;
+    }
+  };
+
+  const toggleMute = () => {
+    if (volume > 0) {
+      previousVolumeRef.current = volume;
+      setVolume(0);
+    } else {
+      setVolume(previousVolumeRef.current || 1);
+    }
+  };
+
   useEffect(() => {
     if (playStatus && audioRef.current && track) {
       audioRef.current.play();
@@ -115,6 +149,7 @@ const PlayerContextProvider = (props) => {
     songsData,
     playStatus, setPlayStatus,
     time, setTime,
+    volume, changeVolume, toggleMute,
     play, pause, clearTrack,
     playWithId, previous, next, seekSong,
   };

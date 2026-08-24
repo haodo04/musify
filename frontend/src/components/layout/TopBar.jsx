@@ -1,6 +1,6 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Home, Search, Bell, Users, Download } from "lucide-react";
+import { Home, Search, Bell, Users, Download, ExternalLink } from "lucide-react";
 import { AuthContext } from "../../context/AuthContext";
 import AppLogo from "../icons/AppLogo";
 
@@ -9,6 +9,17 @@ const TopBar = () => {
   const { isAuthenticated, user, logout } = useContext(AuthContext);
   const [keyword, setKeyword] = useState("");
   const [showMenu, setShowMenu] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -50,25 +61,48 @@ const TopBar = () => {
         {isAuthenticated ? (
           <>
             <button className="hidden md:flex items-center gap-2 text-sm font-semibold text-[#a7a7a7] hover:text-white transition">
-              <Download className="w-5 h-5" /> Cài đặt ứng dụng
+              Khám phá Premium
             </button>
             <Bell className="w-5 h-5 text-[#a7a7a7] hover:text-white cursor-pointer hidden md:block" />
             <Users className="w-5 h-5 text-[#a7a7a7] hover:text-white cursor-pointer hidden md:block" />
-            <div className="relative">
+            
+            <div className="relative" ref={dropdownRef}>
               <div
                 onClick={() => setShowMenu(!showMenu)}
-                className="bg-purple-500 text-black w-8 h-8 rounded-full flex items-center justify-center cursor-pointer font-bold text-sm"
+                className="bg-purple-500 text-black w-8 h-8 rounded-full flex items-center justify-center cursor-pointer font-bold text-sm hover:scale-105 transition"
               >
                 {user?.username?.charAt(0).toUpperCase()}
               </div>
+              
               {showMenu && (
-                <div className="absolute right-0 mt-2 w-40 bg-[#282828] rounded shadow-lg py-1 z-50">
-                  <p className="px-4 py-2 text-sm text-[#a7a7a7] truncate">
-                    {user?.username}
-                  </p>
+                <div className="absolute right-0 mt-2 w-56 bg-[#282828] rounded-md shadow-[0_16px_24px_rgba(0,0,0,0.3),0_6px_8px_rgba(0,0,0,0.2)] py-1 z-50 text-sm font-medium text-[#e5e5e5]">
+                  <button className="w-full text-left px-4 py-3 hover:bg-[#3e3e3e] flex justify-between items-center transition-colors">
+                    Tài khoản
+                    <ExternalLink className="w-4 h-4 text-[#a7a7a7]" />
+                  </button>
+                  <button className="w-full text-left px-4 py-3 hover:bg-[#3e3e3e] transition-colors">
+                    Hồ sơ
+                  </button>
+                  <button className="w-full text-left px-4 py-3 hover:bg-[#3e3e3e] transition-colors">
+                    Gần đây
+                  </button>
+                  <button className="w-full text-left px-4 py-3 hover:bg-[#3e3e3e] flex justify-between items-center transition-colors">
+                    Nâng cấp lên Premium
+                    <ExternalLink className="w-4 h-4 text-[#a7a7a7]" />
+                  </button>
+                  <button className="w-full text-left px-4 py-3 hover:bg-[#3e3e3e] flex justify-between items-center transition-colors">
+                    Hỗ trợ
+                    <ExternalLink className="w-4 h-4 text-[#a7a7a7]" />
+                  </button>
+                  <button className="w-full text-left px-4 py-3 hover:bg-[#3e3e3e] transition-colors">
+                    Cài đặt
+                  </button>
+                  
+                  <div className="h-px bg-[#3e3e3e] my-1 mx-1" />
+                  
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 text-sm hover:bg-[#3e3e3e]"
+                    className="w-full text-left px-4 py-3 hover:bg-[#3e3e3e] transition-colors"
                   >
                     Đăng xuất
                   </button>

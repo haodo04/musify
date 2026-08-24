@@ -5,8 +5,8 @@ export const getMyPlaylists = async () => {
   return res.data;
 };
 
-export const createPlaylist = async (name, description, isPublic) => {
-  const res = await api.post("/playlists", { name, description, isPublic });
+export const createPlaylist = async (playlistData) => {
+  const res = await api.post("/playlists", playlistData);
   return res.data;
 };
 
@@ -22,4 +22,9 @@ export const addSongToPlaylist = async (playlistId, songId) => {
 
 export const removeSongFromPlaylist = async (playlistId, songId) => {
   await api.delete(`/playlists/${playlistId}/songs/${songId}`);
+};
+
+export const deletePlaylist = async (id) => {
+  const res = await api.delete(`/playlists/${id}`);
+  return res.data;
 };

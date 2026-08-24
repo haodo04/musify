@@ -22,8 +22,8 @@ const MainLayout = () => {
   return (
     <div
       ref={displayRef}
-      className={`m-2 px-6 pt-4 rounded bg-[#121212] text-white overflow-y-auto custom-scrollbar
-        ${isAdminPage ? "w-[calc(100%-1rem)]" : "w-[100%] lg:w-[75%] lg:ml-0"}`}
+      className={`mt-2 mb-2 ml-2 px-6 pt-4 rounded-l-lg bg-[#121212] text-white overflow-y-auto custom-scrollbar flex-1 min-w-0
+        ${isAdminPage ? "mr-2 rounded-r-lg" : "mr-0"}`}
     >
       <Routes>
         <Route path="/" element={<Home />} />
