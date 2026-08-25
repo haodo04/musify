@@ -27,6 +27,11 @@ public class User {
 
     private String avatarUrl;
 
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private Role role = Role.USER;
+
     @Column(updatable = false)
     private LocalDateTime createdAt;
 

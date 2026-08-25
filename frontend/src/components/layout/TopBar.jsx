@@ -1,6 +1,6 @@
 import { useContext, useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Home, Search, Bell, Users, ExternalLink, X, Play } from "lucide-react";
+import { Home, Search, Bell, Users, ExternalLink, X, Play, Shield } from "lucide-react";
 import { AuthContext } from "../../context/AuthContext";
 import { searchSongs } from "../../services/songService";
 import AppLogo from "../icons/AppLogo";
@@ -29,6 +29,7 @@ const TopBar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Gợi ý tìm kiếm trực tiếp khi gõ, debounce 300ms để tránh gọi API liên tục
   useEffect(() => {
     if (!keyword.trim()) {
       setSuggestions([]);
@@ -114,8 +115,10 @@ const TopBar = () => {
           </div>
         </form>
 
+        {/* Dropdown gợi ý trực tiếp */}
         {showSuggestions && keyword.trim() && (
           <div className="absolute top-full left-0 right-0 mt-2 bg-[#282828] rounded-lg shadow-[0_16px_24px_rgba(0,0,0,0.3),0_6px_8px_rgba(0,0,0,0.2)] py-2 z-50 max-h-[420px] overflow-y-auto custom-scrollbar animate-fadeIn">
+            {/* Gợi ý "tìm toàn bộ kết quả" */}
             <div
               onClick={() => { navigate(`/search?q=${encodeURIComponent(keyword)}`); setShowSuggestions(false); }}
               className="flex items-center gap-3 px-4 py-2.5 hover:bg-[#3e3e3e] cursor-pointer transition"
@@ -157,6 +160,15 @@ const TopBar = () => {
       <div className="flex items-center gap-4 shrink-0">
         {isAuthenticated ? (
           <>
+            {user?.role === "ADMIN" && (
+              <button
+                onClick={() => navigate("/admin")}
+                className="hidden md:flex items-center gap-1.5 text-sm font-semibold text-black bg-[#1db954] hover:bg-[#1ed760] px-3.5 py-1.5 rounded-full transition"
+                title="Trang quản trị"
+              >
+                <Shield className="w-4 h-4" /> Admin
+              </button>
+            )}
             <button className="hidden md:flex items-center gap-2 text-sm font-semibold text-[#a7a7a7] hover:text-white transition">
               Khám phá Premium
             </button>
@@ -173,14 +185,22 @@ const TopBar = () => {
               
               {showMenu && (
                 <div className="absolute right-0 mt-2 w-56 bg-[#282828] rounded-md shadow-[0_16px_24px_rgba(0,0,0,0.3),0_6px_8px_rgba(0,0,0,0.2)] py-1 z-50 text-sm font-medium text-[#e5e5e5]">
+                  {user?.role === "ADMIN" && (
+                    <>
+                      <button
+                        onClick={() => { setShowMenu(false); navigate("/admin"); }}
+                        className="w-full text-left px-4 py-3 hover:bg-[#3e3e3e] flex items-center gap-2 text-[#1db954] font-bold transition-colors"
+                      >
+                        <Shield className="w-4 h-4" /> Trang quản trị
+                      </button>
+                      <div className="h-px bg-[#3e3e3e] my-1 mx-1" />
+                    </>
+                  )}
                   <button className="w-full text-left px-4 py-3 hover:bg-[#3e3e3e] flex justify-between items-center transition-colors">
                     Tài khoản
                     <ExternalLink className="w-4 h-4 text-[#a7a7a7]" />
                   </button>
-                  <button 
-                    onClick={() => { navigate('/profile'); setShowMenu(false); }}
-                    className="w-full text-left px-4 py-3 hover:bg-[#3e3e3e] transition-colors"
-                  >
+                  <button className="w-full text-left px-4 py-3 hover:bg-[#3e3e3e] transition-colors">
                     Hồ sơ
                   </button>
                   <button className="w-full text-left px-4 py-3 hover:bg-[#3e3e3e] transition-colors">

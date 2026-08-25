@@ -73,9 +73,22 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/songs/**", "/api/albums/**", "/api/artists/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/songs/*/play").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/songs/upload").permitAll()  // bypass
-                        .requestMatchers(HttpMethod.POST, "/api/artists").permitAll()   // bypass
-                        .requestMatchers(HttpMethod.POST, "/api/albums").permitAll() // bypass
+
+                        .requestMatchers(HttpMethod.POST, "/api/songs/upload").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/songs/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/songs/**").hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.POST, "/api/artists").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/artists/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/artists/**").hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.POST, "/api/albums").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/albums/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/albums/**").hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/users/*/role").hasRole("ADMIN")
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

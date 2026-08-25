@@ -14,6 +14,10 @@ export const getAllArtists = async () => {
   return res.data;
 };
 
+export const deleteArtist = async (id) => {
+  await api.delete(`/artists/${id}`);
+};
+
 export const createAlbum = async ({ title, releaseDate, artistId, coverFile }) => {
   const form = new FormData();
   form.append("title", title);
@@ -27,6 +31,10 @@ export const createAlbum = async ({ title, releaseDate, artistId, coverFile }) =
 export const getAllAlbums = async () => {
   const res = await api.get("/albums");
   return res.data;
+};
+
+export const deleteAlbum = async (id) => {
+  await api.delete(`/albums/${id}`);
 };
 
 export const createSong = async ({ title, genre, duration, artistId, albumId, audioFile, imageFile }) => {
@@ -45,4 +53,8 @@ export const createSong = async ({ title, genre, duration, artistId, albumId, au
 export const getAllSongs = async () => {
   const res = await api.get("/songs");
   return res.data;
+};
+
+export const deleteSong = async (id) => {
+  await api.delete(`/songs/${id}`);
 };

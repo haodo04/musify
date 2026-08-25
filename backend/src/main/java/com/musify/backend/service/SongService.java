@@ -10,6 +10,7 @@ import com.musify.backend.repository.AlbumRepository;
 import com.musify.backend.repository.ArtistRepository;
 import com.musify.backend.repository.SongRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -119,5 +120,17 @@ public class SongService {
         return songs.stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    @Transactional
+    public void deleteSong(Long id) {
+        if (!songRepository.existsById(id)) {
+            throw new RuntimeException("Khong tim thay song");
+        }
+        try {
+            songRepository.deleteById(id);
+        } catch (DataIntegrityViolationException e) {
+            throw new RuntimeException("Không thể xoá bài hát này vì đang được dùng trong playlist hoặc danh sách yêu thích của người dùng");
+        }
     }
 }

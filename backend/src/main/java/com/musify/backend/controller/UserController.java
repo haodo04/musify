@@ -1,5 +1,7 @@
 package com.musify.backend.controller;
 
+import com.musify.backend.dto.response.UserResponse;
+import com.musify.backend.entity.Role;
 import com.musify.backend.entity.User;
 import com.musify.backend.security.CustomUserDetails;
 import com.musify.backend.service.UserService;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -27,5 +30,18 @@ public class UserController {
         User updatedUser = userService.updateProfile(userDetails.getUsername(), username, avatarFile);
 
         return ResponseEntity.ok(updatedUser);
+    }
+
+    @GetMapping
+    public List<UserResponse> getAllUsers() {
+        return userService.getAllUsers();
+    }
+
+    @PutMapping("/{id}/role")
+    public UserResponse updateUserRole(
+            @PathVariable Long id,
+            @RequestParam Role role,
+            @AuthenticationPrincipal CustomUserDetails currentAdmin) {
+        return userService.updateUserRole(id, role, currentAdmin.getUsername());
     }
 }

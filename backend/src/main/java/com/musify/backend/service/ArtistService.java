@@ -5,7 +5,9 @@ import com.musify.backend.dto.response.ArtistResponse;
 import com.musify.backend.entity.Artist;
 import com.musify.backend.repository.ArtistRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.List;
@@ -47,5 +49,17 @@ public class ArtistService {
 
     private ArtistResponse toResponse(Artist artist) {
         return new ArtistResponse(artist.getId(), artist.getName(), artist.getAvatarUrl(), artist.getBannerUrl() ,artist.getBio());
+    }
+
+    @Transactional
+    public void deleteArtist(Long id) {
+        if (!artistRepository.existsById(id)) {
+            throw new RuntimeException("Khong tim thay artist");
+        }
+        try {
+            artistRepository.deleteById(id);
+        } catch (DataIntegrityViolationException e) {
+            throw new RuntimeException("Không thể xoá nghệ sĩ này vì vẫn còn bài hát hoặc album thuộc về nghệ sĩ");
+        }
     }
 }

@@ -1,6 +1,6 @@
 import { Radio, LayoutDashboard, Music, Disc3, Mic2, Users, ListMusic, RefreshCw } from "lucide-react";
 
-export default function AdminSidebar({ activeTab, setActiveTab, songsCount, albumsCount, artistsCount, loading, loadData }) {
+export default function AdminSidebar({ activeTab, setActiveTab, songsCount, albumsCount, artistsCount, usersCount, loading, loadData }) {
   return (
     <aside className="w-64 bg-[#121212] border-r border-[#1e1e1e] flex flex-col justify-between shrink-0">
       <div>
@@ -57,8 +57,14 @@ export default function AdminSidebar({ activeTab, setActiveTab, songsCount, albu
           </button>
 
           <p className="px-3 text-[11px] font-bold text-[#6a6a6a] uppercase tracking-wider mt-6 mb-2">Hệ thống & User</p>
-          <button className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-[#555] cursor-not-allowed">
-            <Users className="w-4 h-4" /> Người dùng <span className="text-[10px] bg-[#222] text-[#777] px-1.5 py-0.5 rounded">Sắp có</span>
+          <button
+            onClick={() => setActiveTab("users")}
+            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all ${
+              activeTab === "users" ? "bg-[#1db954] text-black font-bold shadow-lg shadow-[#1db954]/20" : "text-[#b3b3b3] hover:bg-[#1a1a1a] hover:text-white"
+            }`}
+          >
+            <div className="flex items-center gap-3"><Users className="w-4 h-4" /> Người dùng</div>
+            <span className={`text-xs px-2 py-0.5 rounded-full ${activeTab === "users" ? "bg-black/20 text-black" : "bg-[#282828] text-[#a7a7a7]"}`}>{usersCount}</span>
           </button>
           <button className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-[#555] cursor-not-allowed">
             <ListMusic className="w-4 h-4" /> Playlist Công cộng <span className="text-[10px] bg-[#222] text-[#777] px-1.5 py-0.5 rounded">Sắp có</span>

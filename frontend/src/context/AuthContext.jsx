@@ -27,7 +27,7 @@ const AuthContextProvider = (props) => {
   };
 
   const saveAuthData = (data) => {
-    const userData = { id: data.userId, username: data.username, email: data.email, avatarUrl: data.avatarUrl };
+    const userData = { id: data.userId, username: data.username, email: data.email, avatarUrl: data.avatarUrl, role: data.role };
     localStorage.setItem("token", data.token);
     localStorage.setItem("user", JSON.stringify(userData));
     setToken(data.token);
@@ -46,6 +46,7 @@ const AuthContextProvider = (props) => {
     setUser,
     token,
     isAuthenticated: !!token,
+    isAdmin: user?.role === "ADMIN",
     login,
     register,
     logout,

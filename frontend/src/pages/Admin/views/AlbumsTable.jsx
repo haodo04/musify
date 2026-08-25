@@ -1,4 +1,6 @@
-export default function AlbumsTable({ filteredAlbums }) {
+import { Trash2 } from "lucide-react";
+
+export default function AlbumsTable({ filteredAlbums, onDeleteRequest }) {
   return (
     <div className="bg-[#121212] border border-[#1e1e1e] rounded-2xl overflow-hidden shadow-xl">
       <table className="w-full text-left text-sm text-[#b3b3b3]">
@@ -7,11 +9,12 @@ export default function AlbumsTable({ filteredAlbums }) {
             <th className="px-6 py-4">Album</th>
             <th className="px-6 py-4">Nghệ sĩ</th>
             <th className="px-6 py-4">Ngày phát hành</th>
+            <th className="px-6 py-4 text-right">Thao tác</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-[#1e1e1e]">
           {filteredAlbums.length === 0 ? (
-            <tr><td colSpan="3" className="text-center py-12 text-[#a7a7a7]">Không tìm thấy album nào</td></tr>
+            <tr><td colSpan="4" className="text-center py-12 text-[#a7a7a7]">Không tìm thấy album nào</td></tr>
           ) : (
             filteredAlbums.map((album) => (
               <tr key={album.id} className="hover:bg-[#1a1a1a] transition">
@@ -21,6 +24,11 @@ export default function AlbumsTable({ filteredAlbums }) {
                 </td>
                 <td className="px-6 py-4 text-white font-medium">{album.artist?.name || "—"}</td>
                 <td className="px-6 py-4">{album.releaseDate || "Chưa cập nhật"}</td>
+                <td className="px-6 py-4 text-right">
+                  <button onClick={() => onDeleteRequest(album)} className="p-2 rounded-lg bg-[#282828] hover:bg-red-500 text-white transition" title="Xoá album">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </td>
               </tr>
             ))
           )}

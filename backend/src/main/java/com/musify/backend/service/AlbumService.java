@@ -8,8 +8,10 @@ import com.musify.backend.entity.Artist;
 import com.musify.backend.repository.AlbumRepository;
 import com.musify.backend.repository.ArtistRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.List;
@@ -76,5 +78,17 @@ public class AlbumService {
         return albumRepository.findTopAlbumsByPlayCount(PageRequest.of(0, 10)).stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    @Transactional
+    public void deleteAlbum(Long id) {
+        if (!albumRepository.existsById(id)) {
+            throw new RuntimeException("Khong tim thay album");
+        }
+        try {
+            albumRepository.deleteById(id);
+        } catch (DataIntegrityViolationException e) {
+            throw new RuntimeException("Không thể xoá album này vì vẫn còn bài hát thuộc album");
+        }
     }
 }

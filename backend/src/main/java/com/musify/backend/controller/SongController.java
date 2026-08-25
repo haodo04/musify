@@ -73,4 +73,9 @@ public class SongController {
     public List<SongResponse> getSongsByArtist(@PathVariable Long artistId) {
         return songService.getSongsByArtistId(artistId);
     }
+
+    @DeleteMapping("/{id}")
+    public void deleteSong(@PathVariable Long id) {
+        songService.deleteSong(id);
+    }
 }

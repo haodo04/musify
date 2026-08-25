@@ -48,4 +48,9 @@ public class AlbumController {
     public List<AlbumResponse> getCharts() {
         return albumService.getFeaturedCharts();
     }
+
+    @DeleteMapping("/{id}")
+    public void deleteAlbum(@PathVariable Long id) {
+        albumService.deleteAlbum(id);
+    }
 }

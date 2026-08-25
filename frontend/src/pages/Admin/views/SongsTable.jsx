@@ -1,6 +1,6 @@
-import { Play } from "lucide-react";
+import { Play, Trash2 } from "lucide-react";
 
-export default function SongsTable({ filteredSongs, playWithId }) {
+export default function SongsTable({ filteredSongs, playWithId, onDeleteRequest }) {
   return (
     <div className="bg-[#121212] border border-[#1e1e1e] rounded-2xl overflow-hidden shadow-xl">
       <table className="w-full text-left text-sm text-[#b3b3b3]">
@@ -29,9 +29,14 @@ export default function SongsTable({ filteredSongs, playWithId }) {
                 <td className="px-6 py-4 text-center">{song.duration ? `${Math.floor(song.duration / 60)}:${(song.duration % 60).toString().padStart(2, '0')}` : "—"}</td>
                 <td className="px-6 py-4 text-center font-semibold text-white">{song.playCount || 0}</td>
                 <td className="px-6 py-4 text-right">
-                  <button onClick={() => playWithId(song.id)} className="p-2 rounded-lg bg-[#282828] hover:bg-[#1db954] hover:text-black text-white transition">
-                    <Play className="w-4 h-4 fill-current" />
-                  </button>
+                  <div className="flex items-center justify-end gap-2">
+                    <button onClick={() => playWithId(song.id)} className="p-2 rounded-lg bg-[#282828] hover:bg-[#1db954] hover:text-black text-white transition">
+                      <Play className="w-4 h-4 fill-current" />
+                    </button>
+                    <button onClick={() => onDeleteRequest(song)} className="p-2 rounded-lg bg-[#282828] hover:bg-red-500 text-white transition" title="Xoá bài hát">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))

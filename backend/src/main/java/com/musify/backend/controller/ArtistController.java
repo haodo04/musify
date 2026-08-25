@@ -42,4 +42,9 @@ public class ArtistController {
     public ArtistResponse getArtistById(@PathVariable Long id) {
         return artistService.getArtistById(id);
     }
+
+    @DeleteMapping("/{id}")
+    public void deleteArtist(@PathVariable Long id) {
+        artistService.deleteArtist(id);
+    }
 }

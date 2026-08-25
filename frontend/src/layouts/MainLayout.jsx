@@ -4,6 +4,7 @@ import Album from "../pages/Album/Album"
 import Library from "../pages/Library/Library"
 import Playlist from "../pages/Playlist/Playlist"
 import ProtectedRoute from "../routes/ProtectedRoute"
+import AdminRoute from "../routes/AdminRoute"
 import Admin from "../pages/Admin/Admin"
 import Search from "../pages/Search/Search"
 import Song from "../pages/Song/Song"
@@ -41,7 +42,9 @@ const MainLayout = () => {
         <Route path="/artist/:id" element={<Artist />} />
         <Route path="/search" element={<Search />} />
         <Route path="/song/:id" element={<Song />} />
-        <Route path="/admin" element={<Admin />} />
+        <Route path="/admin" element={
+          <AdminRoute><Admin /></AdminRoute>
+        } />
         <Route path="/profile" element={
           <ProtectedRoute><Profile /></ProtectedRoute>
         } />
