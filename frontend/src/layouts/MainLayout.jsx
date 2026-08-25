@@ -5,8 +5,12 @@ import Library from "../pages/Library/Library"
 import Playlist from "../pages/Playlist/Playlist"
 import ProtectedRoute from "../routes/ProtectedRoute"
 import Admin from "../pages/Admin/Admin"
+import Search from "../pages/Search/Search"
+import Song from "../pages/Song/Song"
 import { useEffect, useRef } from "react"
 import Artist from "../pages/Artist/Artist"
+import Profile from "../pages/Profile/Profile"
+import Favorites from "../pages/Favorites/Favorites"
 
 const MainLayout = () => {
   const displayRef = useRef();
@@ -35,7 +39,15 @@ const MainLayout = () => {
           <ProtectedRoute><Playlist /></ProtectedRoute>
         } />
         <Route path="/artist/:id" element={<Artist />} />
+        <Route path="/search" element={<Search />} />
+        <Route path="/song/:id" element={<Song />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/profile" element={
+          <ProtectedRoute><Profile /></ProtectedRoute>
+        } />
+        <Route path="/favorites" element={
+          <ProtectedRoute><Favorites /></ProtectedRoute>
+        } />
       </Routes>
     </div>
   )

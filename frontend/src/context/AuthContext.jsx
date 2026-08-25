@@ -7,7 +7,6 @@ const AuthContextProvider = (props) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem("token") || null);
 
-  // Khôi phục thông tin user từ localStorage khi load lại trang
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
     if (savedUser) {
@@ -28,7 +27,7 @@ const AuthContextProvider = (props) => {
   };
 
   const saveAuthData = (data) => {
-    const userData = { id: data.userId, username: data.username, email: data.email };
+    const userData = { id: data.userId, username: data.username, email: data.email, avatarUrl: data.avatarUrl };
     localStorage.setItem("token", data.token);
     localStorage.setItem("user", JSON.stringify(userData));
     setToken(data.token);
@@ -44,6 +43,7 @@ const AuthContextProvider = (props) => {
 
   const contextValue = {
     user,
+    setUser,
     token,
     isAuthenticated: !!token,
     login,

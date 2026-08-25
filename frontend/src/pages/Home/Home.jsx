@@ -225,7 +225,7 @@ const Home = () => {
                 <SectionHeader title="Nghe gần đây" />
                 <div className="flex overflow-auto custom-scrollbar pb-4 gap-6">
                   {recentlyPlayed.map((item) => (
-                    <SongItem key={item.id} id={item.id} name={item.title} desc={item.artist?.name} image={item.imageUrl} />
+                    <SongItem key={item.id} id={item.id} name={item.title} desc={item.artist?.name} image={item.imageUrl} queue={recentlyPlayed} />
                   ))}
                 </div>
               </div>
@@ -240,7 +240,7 @@ const Home = () => {
                   <p className="text-[#a7a7a7] text-sm font-medium">Chưa có bài hát nào</p>
                 ) : (
                   trendingSongs.map((item) => (
-                    <SongItem key={item.id} id={item.id} name={item.title} desc={item.artist?.name} image={item.imageUrl} />
+                    <SongItem key={item.id} id={item.id} name={item.title} desc={item.artist?.name} image={item.imageUrl} queue={trendingSongs} />
                   ))
                 )}
               </div>

@@ -71,7 +71,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET,"/api/songs/**", "/api/albums/**", "/api/artists/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/songs/**", "/api/albums/**", "/api/artists/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/songs/*/play").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/songs/upload").permitAll()  // bypass
                         .requestMatchers(HttpMethod.POST, "/api/artists").permitAll()   // bypass

@@ -1,29 +1,74 @@
 import { useContext, useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Home, Search, Bell, Users, Download, ExternalLink } from "lucide-react";
+import { Home, Search, Bell, Users, ExternalLink, X, Play } from "lucide-react";
 import { AuthContext } from "../../context/AuthContext";
+import { searchSongs } from "../../services/songService";
 import AppLogo from "../icons/AppLogo";
 
 const TopBar = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useContext(AuthContext);
   const [keyword, setKeyword] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [searching, setSearching] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const dropdownRef = useRef(null);
+  const searchRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowMenu(false);
       }
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (!keyword.trim()) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    setSearching(true);
+    const timer = setTimeout(async () => {
+      try {
+        const results = await searchSongs(keyword.trim());
+        setSuggestions(results.slice(0, 6));
+        setShowSuggestions(true);
+      } catch (err) {
+        console.error("Lỗi khi gợi ý tìm kiếm:", err);
+        setSuggestions([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [keyword]);
+
   const handleSearch = (e) => {
     e.preventDefault();
-    if (keyword.trim()) navigate(`/search?q=${encodeURIComponent(keyword)}`);
+    if (keyword.trim()) {
+      navigate(`/search?q=${encodeURIComponent(keyword)}`);
+      setShowSuggestions(false);
+    }
+  };
+
+  const goToSong = (id) => {
+    navigate(`/song/${id}`);
+    setShowSuggestions(false);
+    setKeyword("");
+  };
+
+  const clearSearch = () => {
+    setKeyword("");
+    setSuggestions([]);
+    setShowSuggestions(false);
   };
 
   const handleLogout = () => {
@@ -44,18 +89,70 @@ const TopBar = () => {
         </button>
       </div>
 
-      <form onSubmit={handleSearch} className="flex-1 max-w-xl">
-        <div className="flex items-center bg-[#242424] hover:bg-[#2a2a2a] rounded-full px-4 py-2.5 gap-3">
-          <Search className="w-5 h-5 text-white shrink-0" />
-          <input
-            type="text"
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            placeholder="Bạn muốn nghe gì?"
-            className="bg-transparent outline-none text-white placeholder:text-[#a7a7a7] w-full text-sm"
-          />
-        </div>
-      </form>
+      <div ref={searchRef} className="relative flex-1 max-w-xl">
+        <form onSubmit={handleSearch}>
+          <div className="flex items-center bg-[#242424] hover:bg-[#2a2a2a] rounded-full px-4 py-2.5 gap-3">
+            <Search className="w-5 h-5 text-white shrink-0" />
+            <input
+              type="text"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              onFocus={() => keyword.trim() && setShowSuggestions(true)}
+              placeholder="Bạn muốn nghe gì?"
+              className="bg-transparent outline-none text-white placeholder:text-[#a7a7a7] w-full text-sm"
+            />
+            {keyword && (
+              <button
+                type="button"
+                onClick={clearSearch}
+                className="text-[#a7a7a7] hover:text-white transition shrink-0"
+                title="Xoá"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </form>
+
+        {showSuggestions && keyword.trim() && (
+          <div className="absolute top-full left-0 right-0 mt-2 bg-[#282828] rounded-lg shadow-[0_16px_24px_rgba(0,0,0,0.3),0_6px_8px_rgba(0,0,0,0.2)] py-2 z-50 max-h-[420px] overflow-y-auto custom-scrollbar animate-fadeIn">
+            <div
+              onClick={() => { navigate(`/search?q=${encodeURIComponent(keyword)}`); setShowSuggestions(false); }}
+              className="flex items-center gap-3 px-4 py-2.5 hover:bg-[#3e3e3e] cursor-pointer transition"
+            >
+              <Search className="w-4 h-4 text-[#a7a7a7] shrink-0" />
+              <p className="text-sm text-white truncate">
+                <span className="font-semibold">{keyword}</span>
+              </p>
+            </div>
+
+            {searching ? (
+              <p className="px-4 py-3 text-sm text-[#a7a7a7]">Đang tìm...</p>
+            ) : suggestions.length === 0 ? (
+              <p className="px-4 py-3 text-sm text-[#a7a7a7]">Không tìm thấy bài hát phù hợp</p>
+            ) : (
+              suggestions.map((song) => (
+                <div
+                  key={song.id}
+                  onClick={() => goToSong(song.id)}
+                  className="flex items-center gap-3 px-4 py-2 hover:bg-[#3e3e3e] cursor-pointer transition group"
+                >
+                  <img
+                    src={song.imageUrl || "https://placehold.co/80x80?text=Song"}
+                    alt={song.title}
+                    className="w-10 h-10 rounded object-cover shrink-0"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-white font-medium truncate">{song.title}</p>
+                    <p className="text-xs text-[#a7a7a7] truncate">Bài hát • {song.artist?.name || "Đang cập nhật"}</p>
+                  </div>
+                  <Play className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition shrink-0" />
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </div>
 
       <div className="flex items-center gap-4 shrink-0">
         {isAuthenticated ? (
@@ -80,7 +177,10 @@ const TopBar = () => {
                     Tài khoản
                     <ExternalLink className="w-4 h-4 text-[#a7a7a7]" />
                   </button>
-                  <button className="w-full text-left px-4 py-3 hover:bg-[#3e3e3e] transition-colors">
+                  <button 
+                    onClick={() => { navigate('/profile'); setShowMenu(false); }}
+                    className="w-full text-left px-4 py-3 hover:bg-[#3e3e3e] transition-colors"
+                  >
                     Hồ sơ
                   </button>
                   <button className="w-full text-left px-4 py-3 hover:bg-[#3e3e3e] transition-colors">

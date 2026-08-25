@@ -1,14 +1,29 @@
 import { useNavigate } from "react-router-dom";
-import { Play } from "lucide-react";
+import { Play, Trash2 } from "lucide-react";
 
-const PlaylistItem = ({ id, name, description, image }) => {
+const PlaylistItem = ({ id, name, description, image, onDelete }) => {
   const navigate = useNavigate();
-  
+
+  const handleDeleteClick = (e) => {
+    e.stopPropagation();
+    onDelete?.(id);
+  };
+
   return (
     <div
       onClick={() => navigate(`/playlist/${id}`)}
-      className="min-w-[160px] max-w-[160px] sm:min-w-[180px] sm:max-w-[180px] p-3.5 rounded-lg hover:bg-[#1a1a1a] cursor-pointer transition-all duration-300 group"
+      className="relative min-w-[160px] max-w-[160px] sm:min-w-[180px] sm:max-w-[180px] p-3.5 rounded-lg hover:bg-[#1a1a1a] cursor-pointer transition-all duration-300 group"
     >
+      {onDelete && (
+        <button
+          onClick={handleDeleteClick}
+          title="Xoá playlist"
+          className="absolute top-2 right-2 z-10 bg-black/60 hover:bg-red-500/90 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      )}
+
       <div className="relative w-full mb-3">
 
         {image ? (

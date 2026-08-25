@@ -12,6 +12,7 @@ const PlayerContextProvider = (props) => {
   const [songsData, setSongsData] = useState([]);
   const [track, setTrack] = useState(null);
   const [playStatus, setPlayStatus] = useState(false);
+  const [queue, setQueue] = useState([]);
   const [time, setTime] = useState({
     currentTime: 0,
     totalTime: 0,
@@ -25,7 +26,6 @@ const PlayerContextProvider = (props) => {
       try {
         const data = await getAllSongs();
         setSongsData(data);
-        // Bỏ setTrack(data[0]) — không tự phát khi load trang
       } catch (err) {
         console.error("Loi khi tai danh sach bai hat:", err);
       }
@@ -57,9 +57,11 @@ const PlayerContextProvider = (props) => {
     setTime({ currentTime: 0, totalTime: 0 });
   };
 
-  const playWithId = async (id) => {
-    const song = songsData.find((s) => s.id === id);
+  const playWithId = async (id, songList = null) => {
+    const list = Array.isArray(songList) && songList.length > 0 ? songList : songsData;
+    const song = list.find((s) => s.id === id) || songsData.find((s) => s.id === id);
     if (!song) return;
+    setQueue(list);
     setTrack(song);
     setPlayStatus(true);
     addRecentlyPlayed(id);
@@ -67,20 +69,24 @@ const PlayerContextProvider = (props) => {
   };
 
   const previous = async () => {
-    const currentIndex = songsData.findIndex((s) => s.id === track?.id);
+    const activeQueue = queue.length > 0 ? queue : songsData;
+    const currentIndex = activeQueue.findIndex((s) => s.id === track?.id);
     if (currentIndex > 0) {
-      setTrack(songsData[currentIndex - 1]);
+      const prevSong = activeQueue[currentIndex - 1];
+      setTrack(prevSong);
       setPlayStatus(true);
-      addRecentlyPlayed(songsData[currentIndex - 1].id);
+      addRecentlyPlayed(prevSong.id);
     }
   };
 
   const next = async () => {
-    const currentIndex = songsData.findIndex((s) => s.id === track?.id);
-    if (currentIndex < songsData.length - 1) {
-      setTrack(songsData[currentIndex + 1]);
+    const activeQueue = queue.length > 0 ? queue : songsData;
+    const currentIndex = activeQueue.findIndex((s) => s.id === track?.id);
+    if (currentIndex !== -1 && currentIndex < activeQueue.length - 1) {
+      const nextSong = activeQueue[currentIndex + 1];
+      setTrack(nextSong);
       setPlayStatus(true);
-      addRecentlyPlayed(songsData[currentIndex + 1].id);
+      addRecentlyPlayed(nextSong.id);
     }
   };
 
@@ -92,14 +98,12 @@ const PlayerContextProvider = (props) => {
     }
   };
 
-  // Áp dụng volume mỗi khi state thay đổi (kéo thanh hoặc bấm mute)
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = volume;
     }
   }, [volume]);
 
-  // Bài mới load xong (audio element có thể reset), đảm bảo giữ đúng volume hiện tại
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = volume;
@@ -147,6 +151,7 @@ const PlayerContextProvider = (props) => {
     audioRef, seekBg, seekBar,
     track, setTrack,
     songsData,
+    queue,
     playStatus, setPlayStatus,
     time, setTime,
     volume, changeVolume, toggleMute,

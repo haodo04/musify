@@ -1,23 +1,29 @@
 import { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../../components/layout/Navbar";
+import AddToPlaylistModal from "../../components/modals/AddToPlaylistModal";
 import { PlayerContext } from "../../context/PlayerContext";
 import { AuthContext } from "../../context/AuthContext";
+import { FavoriteContext } from "../../context/FavoriteContext";
 import { getArtistById } from "../../services/artistService";
 import { getSongsByArtist } from "../../services/songService";
-import { Play, Shuffle, MoreHorizontal, Clock, X } from "lucide-react";
+import { Play, Pause, Shuffle, MoreHorizontal, PlusCircle, Clock, X, Heart } from "lucide-react";
 
 const Artist = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { playWithId } = useContext(PlayerContext);
+  const { playWithId, track, playStatus } = useContext(PlayerContext);
   const { isAuthenticated } = useContext(AuthContext);
+  const { isFavorite, toggleFavorite } = useContext(FavoriteContext);
 
   const [artistData, setArtistData] = useState(null);
   const [songs, setSongs] = useState([]);
   const [isFollowing, setIsFollowing] = useState(false);
   const [bgColor, setBgColor] = useState("from-neutral-800");
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [addToPlaylistSongId, setAddToPlaylistSongId] = useState(null);
+  const [notFound, setNotFound] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const colors = [
     "from-red-800", "from-blue-800", "from-emerald-800", 
@@ -29,17 +35,19 @@ const Artist = () => {
     setBgColor(randomColor);
 
     const fetchData = async () => {
+      setLoading(true);
+      setNotFound(false);
       try {
-        if (getArtistById) {
-          const artist = await getArtistById(id);
-          setArtistData(artist);
-        }
-        if (getSongsByArtist) {
-          const artistSongs = await getSongsByArtist(id);
-          setSongs(artistSongs || []);
-        }
+        const artist = await getArtistById(id);
+        setArtistData(artist);
+        const artistSongs = await getSongsByArtist(id);
+        setSongs(artistSongs || []);
       } catch (err) {
         console.error("Lỗi khi tải thông tin nghệ sĩ:", err);
+        setArtistData(null);
+        setNotFound(true);
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
@@ -51,11 +59,10 @@ const Artist = () => {
       return;
     }
     if (songs.length > 0) {
-      playWithId(songs[0].id);
+      playWithId(songs[0].id, songs);
     }
   };
 
-  // Xử lý trộn bài ngẫu nhiên
   const handleShuffleArtist = () => {
     if (!isAuthenticated) {
       setShowAuthModal(true);
@@ -63,11 +70,10 @@ const Artist = () => {
     }
     if (songs.length > 0) {
       const randomIndex = Math.floor(Math.random() * songs.length);
-      playWithId(songs[randomIndex].id);
+      playWithId(songs[randomIndex].id, songs);
     }
   };
 
-  // Xử lý nút Theo dõi
   const handleFollowToggle = () => {
     if (!isAuthenticated) {
       setShowAuthModal(true);
@@ -76,13 +82,30 @@ const Artist = () => {
     setIsFollowing(!isFollowing);
   };
 
-  // Xử lý khi nhấn vào bài hát
   const handleSongClick = (songId) => {
     if (!isAuthenticated) {
       setShowAuthModal(true);
       return;
     }
-    playWithId(songId);
+    playWithId(songId, songs);
+  };
+
+  const handleAddToPlaylistClick = (e, songId) => {
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
+    setAddToPlaylistSongId(songId);
+  };
+
+  const handleFavoriteClick = (e, songId) => {
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
+    toggleFavorite(songId);
   };
 
   const formatTime = (seconds) => {
@@ -91,6 +114,25 @@ const Artist = () => {
     const s = Math.floor(seconds % 60);
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
+
+  if (loading) {
+    return <div className="text-white p-8 font-medium">Đang tải dữ liệu...</div>;
+  }
+
+  if (notFound || !artistData) {
+    return (
+      <div className="text-white p-8 flex flex-col items-center text-center gap-3 mt-10">
+        <p className="font-bold text-xl">Không tìm thấy nghệ sĩ này</p>
+        <p className="text-[#a7a7a7] text-sm">Nghệ sĩ có thể đã bị xoá hoặc đường dẫn không đúng.</p>
+        <button
+          onClick={() => navigate("/")}
+          className="mt-2 bg-white text-black font-bold px-5 py-2 rounded-full hover:scale-105 transition"
+        >
+          Về trang chủ
+        </button>
+      </div>
+    );
+  }
 
   const artistAvatar = artistData?.avatarUrl || artistData?.imageUrl || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=400&auto=format&fit=crop";
 
@@ -131,7 +173,11 @@ const Artist = () => {
               onClick={handlePlayArtist}
               className="w-14 h-14 bg-[#1db954] rounded-full flex items-center justify-center hover:scale-105 hover:bg-[#1ed760] transition-all shadow-xl cursor-pointer"
             >
-              <Play className="w-7 h-7 fill-black text-black ml-1.5" />
+              {playStatus && songs.some((s) => s.id === track?.id) ? (
+                <Pause className="w-7 h-7 fill-black text-black" />
+              ) : (
+                <Play className="w-7 h-7 fill-black text-black ml-1.5" />
+              )}
             </button>
 
             <button 
@@ -156,44 +202,77 @@ const Artist = () => {
             <MoreHorizontal className="w-8 h-8 text-[#a7a7a7] hover:text-white cursor-pointer transition" />
           </div>
 
-          <div className="grid grid-cols-[30px_minmax(150px,1fr)_50px] sm:grid-cols-[40px_minmax(200px,1fr)_minmax(100px,1fr)_80px] gap-4 mb-4 pl-2 text-[#a7a7a7] text-sm border-b border-[#ffffff1a] pb-2 font-medium">
+          <div className="grid grid-cols-[30px_minmax(150px,1fr)_50px_56px] sm:grid-cols-[40px_minmax(200px,1fr)_minmax(100px,1fr)_80px_64px] gap-2 sm:gap-4 mb-4 pl-2 text-[#a7a7a7] text-sm border-b border-[#ffffff1a] pb-2 font-medium">
             <p className="text-right pr-2">#</p>
             <p>Tiêu đề</p>
             <p className="hidden sm:block">Thể loại</p>
             <div className="flex justify-center"><Clock className="w-4 h-4" /></div>
+            <div></div>
           </div>
 
           {songs.length === 0 ? (
             <p className="text-[#a7a7a7] text-sm py-4">Chưa có bài hát nào của nghệ sĩ này.</p>
           ) : (
             <div className="flex flex-col gap-1">
-              {songs.map((item, index) => (
-                <div
-                  key={item.id}
-                  onClick={() => handleSongClick(item.id)}
-                  className="grid grid-cols-[30px_minmax(150px,1fr)_50px] sm:grid-cols-[40px_minmax(200px,1fr)_minmax(100px,1fr)_80px] gap-4 p-2.5 items-center text-[#a7a7a7] hover:bg-[#ffffff2b] rounded-md cursor-pointer transition group"
-                >
-                  <div className="text-right pr-2 text-base font-medium">
-                    <span className="group-hover:hidden">{index + 1}</span>
-                    <Play className="w-4 h-4 fill-white text-white hidden group-hover:inline-block ml-auto" />
-                  </div>
-                  
-                  <div className="flex items-center gap-3 min-w-0">
-                    <img className="w-10 h-10 object-cover rounded shadow-md" src={item.imageUrl || "https://placehold.co/100x100"} alt={item.title} />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-base font-medium text-white truncate group-hover:text-[#1db954]">{item.title}</p>
+              {songs.map((item, index) => {
+                const isActive = track?.id === item.id;
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => handleSongClick(item.id)}
+                    className="grid grid-cols-[30px_minmax(150px,1fr)_50px_56px] sm:grid-cols-[40px_minmax(200px,1fr)_minmax(100px,1fr)_80px_64px] gap-2 sm:gap-4 p-2.5 items-center text-[#a7a7a7] hover:bg-[#ffffff2b] rounded-md cursor-pointer transition group"
+                  >
+                    <div className="text-right pr-2 text-base font-medium">
+                      {isActive && playStatus ? (
+                        <Pause className="w-4 h-4 fill-[#1db954] text-[#1db954] ml-auto" />
+                      ) : (
+                        <>
+                          <span className="group-hover:hidden">{index + 1}</span>
+                          <Play className="w-4 h-4 fill-white text-white hidden group-hover:inline-block ml-auto" />
+                        </>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-3 min-w-0">
+                      <img className="w-10 h-10 object-cover rounded shadow-md" src={item.imageUrl || "https://placehold.co/100x100"} alt={item.title} />
+                      <div className="min-w-0 flex-1">
+                        <p className={`text-base font-medium truncate ${isActive ? "text-[#1db954]" : "text-white group-hover:text-[#1db954]"}`}>{item.title}</p>
+                      </div>
+                    </div>
+
+                    <p className="text-sm hidden sm:block truncate">{item.genre || "Pop"}</p>
+                    <p className="text-sm text-center font-medium">{formatTime(item.duration)}</p>
+
+                    <div className="flex items-center justify-end gap-1">
+                      <button
+                        onClick={(e) => handleFavoriteClick(e, item.id)}
+                        title={isFavorite(item.id) ? "Xoá khỏi yêu thích" : "Thêm vào yêu thích"}
+                        className={`text-[#a7a7a7] hover:text-white transition p-1 ${
+                          isFavorite(item.id) ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                        }`}
+                      >
+                        <Heart className={`w-4 h-4 ${isFavorite(item.id) ? "fill-red-500 text-red-500" : ""}`} />
+                      </button>
+                      <button
+                        onClick={(e) => handleAddToPlaylistClick(e, item.id)}
+                        title="Thêm vào playlist"
+                        className="opacity-0 group-hover:opacity-100 text-[#a7a7a7] hover:text-white transition p-1"
+                      >
+                        <PlusCircle className="w-4 h-4" strokeWidth={1.5} />
+                      </button>
                     </div>
                   </div>
-
-                  <p className="text-sm hidden sm:block truncate">{item.genre || "Pop"}</p>
-                  <p className="text-sm text-center font-medium">{formatTime(item.duration)}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
         </div>
       </div>
+
+      {addToPlaylistSongId && (
+        <AddToPlaylistModal songId={addToPlaylistSongId} onClose={() => setAddToPlaylistSongId(null)} />
+      )}
 
       {showAuthModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[999] flex items-center justify-center p-4 animate-fadeIn">

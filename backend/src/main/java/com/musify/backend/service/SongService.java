@@ -78,7 +78,7 @@ public class SongService {
                 .toList();
     }
 
-    private SongResponse toResponse(Song song) {
+    public SongResponse toResponse(Song song) {
         ArtistResponse artistResponse = new ArtistResponse(
                 song.getArtist().getId(),
                 song.getArtist().getName(),

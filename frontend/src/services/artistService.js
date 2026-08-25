@@ -1,4 +1,3 @@
-import axios from "axios";
 import api from "./api";
 
 export const getAllArtists = async () => {
@@ -20,7 +19,7 @@ export const createArtist = async (name, bio, avatarFile) => {
 
 export const getArtistById = async (id) => {
   try {
-    const response = await axios.get(`http://localhost:8080/api/artists/${id}`); 
+    const response = await api.get(`/artists/${id}`);
     return response.data;
   } catch (error) {
     console.error("Lỗi khi lấy thông tin chi tiết nghệ sĩ:", error);

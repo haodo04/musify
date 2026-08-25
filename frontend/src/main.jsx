@@ -5,13 +5,16 @@ import "./index.css";
 import { BrowserRouter } from "react-router-dom";
 import PlayerContextProvider from "./context/PlayerContext.jsx";
 import AuthContextProvider from "./context/AuthContext.jsx";
+import FavoriteContextProvider from "./context/FavoriteContext.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthContextProvider>
         <PlayerContextProvider>
-          <App />
+          <FavoriteContextProvider>
+            <App />
+          </FavoriteContextProvider>
         </PlayerContextProvider>
       </AuthContextProvider>
     </BrowserRouter>
