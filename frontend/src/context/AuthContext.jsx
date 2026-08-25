@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect } from "react";
-import { login as loginApi, register as registerApi } from "../services/authService";
+import { login as loginApi, register as registerApi, loginWithGoogle as loginWithGoogleApi } from "../services/authService";
 
 export const AuthContext = createContext();
 
@@ -22,6 +22,12 @@ const AuthContextProvider = (props) => {
 
   const register = async (username, email, password) => {
     const data = await registerApi(username, email, password);
+    saveAuthData(data);
+    return data;
+  };
+
+  const loginWithGoogle = async (idToken) => {
+    const data = await loginWithGoogleApi(idToken);
     saveAuthData(data);
     return data;
   };
@@ -49,6 +55,7 @@ const AuthContextProvider = (props) => {
     isAdmin: user?.role === "ADMIN",
     login,
     register,
+    loginWithGoogle,
     logout,
   };
 

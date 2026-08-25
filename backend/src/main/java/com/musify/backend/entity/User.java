@@ -22,8 +22,7 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
-    private String password; // lưu password đã hash (BCrypt)
+    private String password;
 
     private String avatarUrl;
 
@@ -31,6 +30,11 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private Role role = Role.USER;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private AuthProvider provider = AuthProvider.LOCAL;
 
     @Column(updatable = false)
     private LocalDateTime createdAt;

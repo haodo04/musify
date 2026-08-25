@@ -115,10 +115,8 @@ const TopBar = () => {
           </div>
         </form>
 
-        {/* Dropdown gợi ý trực tiếp */}
         {showSuggestions && keyword.trim() && (
           <div className="absolute top-full left-0 right-0 mt-2 bg-[#282828] rounded-lg shadow-[0_16px_24px_rgba(0,0,0,0.3),0_6px_8px_rgba(0,0,0,0.2)] py-2 z-50 max-h-[420px] overflow-y-auto custom-scrollbar animate-fadeIn">
-            {/* Gợi ý "tìm toàn bộ kết quả" */}
             <div
               onClick={() => { navigate(`/search?q=${encodeURIComponent(keyword)}`); setShowSuggestions(false); }}
               className="flex items-center gap-3 px-4 py-2.5 hover:bg-[#3e3e3e] cursor-pointer transition"
@@ -200,7 +198,10 @@ const TopBar = () => {
                     Tài khoản
                     <ExternalLink className="w-4 h-4 text-[#a7a7a7]" />
                   </button>
-                  <button className="w-full text-left px-4 py-3 hover:bg-[#3e3e3e] transition-colors">
+                  <button
+                    onClick={() => { setShowMenu(false); navigate("/profile"); }}
+                    className="w-full text-left px-4 py-3 hover:bg-[#3e3e3e] transition-colors"
+                  >
                     Hồ sơ
                   </button>
                   <button className="w-full text-left px-4 py-3 hover:bg-[#3e3e3e] transition-colors">

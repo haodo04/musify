@@ -1,5 +1,6 @@
 package com.musify.backend.controller;
 
+import com.musify.backend.dto.request.GoogleAuthRequest;
 import com.musify.backend.dto.request.LoginRequest;
 import com.musify.backend.dto.request.RegisterRequest;
 import com.musify.backend.dto.response.AuthResponse;
@@ -24,5 +25,10 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
+    }
+
+    @PostMapping("/google")
+    public ResponseEntity<AuthResponse> loginWithGoogle(@RequestBody GoogleAuthRequest request) {
+        return ResponseEntity.ok(authService.loginWithGoogle(request));
     }
 }
