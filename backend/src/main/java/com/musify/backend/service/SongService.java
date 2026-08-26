@@ -5,9 +5,11 @@ import com.musify.backend.dto.response.ArtistResponse;
 import com.musify.backend.dto.response.SongResponse;
 import com.musify.backend.entity.Album;
 import com.musify.backend.entity.Artist;
+import com.musify.backend.entity.Favorite;
 import com.musify.backend.entity.Song;
 import com.musify.backend.repository.AlbumRepository;
 import com.musify.backend.repository.ArtistRepository;
+import com.musify.backend.repository.FavoriteRepository;
 import com.musify.backend.repository.SongRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,9 +20,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,9 +35,9 @@ public class SongService {
     private final CloudinaryService cloudinaryService;
     private final ArtistRepository artistRepository;
     private final AlbumRepository albumRepository;
+    private final FavoriteRepository favoriteRepository;
     private final GeminiEmbeddingService geminiEmbeddingService;
     private final ObjectMapper objectMapper = new ObjectMapper();
-
 
     public SongResponse uploadSong(SongUploadRequest request) throws IOException {
         Artist artist = artistRepository.findById(request.getArtistId())
@@ -60,7 +65,6 @@ public class SongService {
 
         songRepository.save(song);
 
-        // Sinh embedding tach rieng: neu Gemini loi, bai hat van da luu thanh cong
         try {
             String description = song.getTitle() + " " + artist.getName() + " " + song.getGenre();
             List<Double> vector = geminiEmbeddingService.embed(description);
@@ -181,7 +185,6 @@ public class SongService {
 
         songRepository.save(song);
 
-        // Sinh lai embedding vi ten/nghe si/the loai co the da thay doi
         try {
             String description = song.getTitle() + " " + artist.getName() + " " + song.getGenre();
             List<Double> vector = geminiEmbeddingService.embed(description);
@@ -193,7 +196,6 @@ public class SongService {
 
         return toResponse(song);
     }
-
 
     public List<SongResponse> searchSemantic(String query, int topK) {
         List<Double> queryVector = geminiEmbeddingService.embed(query);
@@ -212,7 +214,6 @@ public class SongService {
                 .map(entry -> toResponse(entry.getKey()))
                 .toList();
     }
-
 
     @Transactional
     public int backfillEmbeddings() {
@@ -233,6 +234,70 @@ public class SongService {
             }
         }
         return successCount;
+    }
+
+    public List<SongResponse> getSimilarSongs(Long songId, int topK) {
+        Song song = songRepository.findById(songId)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay song"));
+
+        if (song.getEmbedding() == null || song.getEmbedding().isBlank()) {
+            return List.of();
+        }
+
+        List<Double> targetVector = parseEmbedding(song.getEmbedding());
+
+        return songRepository.findAll().stream()
+                .filter(s -> !s.getId().equals(songId))
+                .filter(s -> s.getEmbedding() != null && !s.getEmbedding().isBlank())
+                .map(s -> new AbstractMap.SimpleEntry<>(s, cosineSimilarity(targetVector, parseEmbedding(s.getEmbedding()))))
+                .sorted(Comparator.comparingDouble((Map.Entry<Song, Double> e) -> e.getValue()).reversed())
+                .limit(topK)
+                .map(entry -> toResponse(entry.getKey()))
+                .toList();
+    }
+
+    public List<SongResponse> getPersonalizedRecommendations(Long userId, int topK) {
+        List<Favorite> favorites = favoriteRepository.findByUserId(userId);
+
+        List<List<Double>> favoriteVectors = favorites.stream()
+                .map(Favorite::getSong)
+                .filter(s -> s.getEmbedding() != null && !s.getEmbedding().isBlank())
+                .map(s -> parseEmbedding(s.getEmbedding()))
+                .toList();
+
+        if (favoriteVectors.isEmpty()) {
+            return getTrendingSongs();
+        }
+
+        List<Double> centroid = computeCentroid(favoriteVectors);
+
+        Set<Long> favoritedSongIds = favorites.stream()
+                .map(f -> f.getSong().getId())
+                .collect(Collectors.toSet());
+
+        return songRepository.findAll().stream()
+                .filter(s -> !favoritedSongIds.contains(s.getId()))
+                .filter(s -> s.getEmbedding() != null && !s.getEmbedding().isBlank())
+                .map(s -> new AbstractMap.SimpleEntry<>(s, cosineSimilarity(centroid, parseEmbedding(s.getEmbedding()))))
+                .sorted(Comparator.comparingDouble((Map.Entry<Song, Double> e) -> e.getValue()).reversed())
+                .limit(topK)
+                .map(entry -> toResponse(entry.getKey()))
+                .toList();
+    }
+
+    private List<Double> computeCentroid(List<List<Double>> vectors) {
+        int dim = vectors.get(0).size();
+        double[] sum = new double[dim];
+        for (List<Double> v : vectors) {
+            for (int i = 0; i < dim; i++) {
+                sum[i] += v.get(i);
+            }
+        }
+        List<Double> centroid = new ArrayList<>();
+        for (int i = 0; i < dim; i++) {
+            centroid.add(sum[i] / vectors.size());
+        }
+        return centroid;
     }
 
     private List<Double> parseEmbedding(String embeddingJson) {

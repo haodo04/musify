@@ -7,7 +7,7 @@ import AlbumItem from "../../components/cards/AlbumItem";
 import SongItem from "../../components/cards/SongItem";
 import ArtistItem from "../../components/cards/ArtistItem";
 import { getAllAlbums, getFeaturedCharts } from "../../services/albumService";
-import { getAllSongs, getTrendingSongs } from "../../services/songService";
+import { getAllSongs, getTrendingSongs, getRecommendations } from "../../services/songService";
 import { AuthContext } from "../../context/AuthContext";
 import { PlayerContext } from "../../context/PlayerContext";
 import { getRecentlyPlayedIds } from "../../utils/recentlyPlayed";
@@ -18,6 +18,7 @@ const Home = () => {
   const [songs, setSongs] = useState([]);
   const [trendingSongs, setTrendingSongs] = useState([]);
   const [charts, setCharts] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
   
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -49,6 +50,16 @@ const Home = () => {
     };
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setRecommendations([]);
+      return;
+    }
+    getRecommendations(10)
+      .then(setRecommendations)
+      .catch(() => setRecommendations([]));
+  }, [isAuthenticated]);
 
   const artists = useMemo(() => {
     const seen = new Set();
@@ -226,6 +237,17 @@ const Home = () => {
                 <div className="flex overflow-auto custom-scrollbar pb-4 gap-6">
                   {recentlyPlayed.map((item) => (
                     <SongItem key={item.id} id={item.id} name={item.title} desc={item.artist?.name} image={item.imageUrl} queue={recentlyPlayed} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {isAuthenticated && recommendations.length > 0 && (
+              <div className="mb-8">
+                <SectionHeader title="Có thể bạn sẽ thích" />
+                <div className="flex overflow-auto custom-scrollbar pb-4 gap-6">
+                  {recommendations.map((item) => (
+                    <SongItem key={item.id} id={item.id} name={item.title} desc={item.artist?.name} image={item.imageUrl} queue={recommendations} />
                   ))}
                 </div>
               </div>

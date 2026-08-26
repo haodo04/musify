@@ -26,6 +26,16 @@ export const searchSemantic = async (query, topK = 8) => {
   return res.data;
 };
 
+export const getSimilarSongs = async (songId, topK = 6) => {
+  const res = await api.get(`/songs/${songId}/similar`, { params: { topK } });
+  return res.data;
+};
+
+export const getRecommendations = async (topK = 10) => {
+  const res = await api.get(`/songs/recommendations`, { params: { topK } });
+  return res.data;
+};
+
 export const getTrendingSongs = async () => {
   const res = await api.get("/songs/trending");
   return res.data;

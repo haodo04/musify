@@ -2,10 +2,11 @@ import { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../../components/layout/Navbar";
 import AddToPlaylistModal from "../../components/modals/AddToPlaylistModal";
+import SongItem from "../../components/cards/SongItem";
 import { PlayerContext } from "../../context/PlayerContext";
 import { AuthContext } from "../../context/AuthContext";
 import { FavoriteContext } from "../../context/FavoriteContext";
-import { getSongById } from "../../services/songService";
+import { getSongById, getSimilarSongs } from "../../services/songService";
 import { Play, Pause, MoreHorizontal, PlusCircle, Clock, X, Heart } from "lucide-react";
 
 const colors = [
@@ -36,6 +37,7 @@ const Song = () => {
   const { isFavorite, toggleFavorite } = useContext(FavoriteContext);
 
   const [songData, setSongData] = useState(null);
+  const [similarSongs, setSimilarSongs] = useState([]);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showAddToPlaylist, setShowAddToPlaylist] = useState(false);
   const [notFound, setNotFound] = useState(false);
@@ -62,6 +64,13 @@ const Song = () => {
     };
     fetchData();
   }, [id]);
+
+  useEffect(() => {
+    if (!songData) return;
+    getSimilarSongs(songData.id, 6)
+      .then(setSimilarSongs)
+      .catch(() => setSimilarSongs([]));
+  }, [songData?.id]);
 
   const handlePlay = () => {
     if (!isAuthenticated) {
@@ -213,6 +222,24 @@ const Song = () => {
             <p className="text-sm hidden sm:block truncate">{songData.genre || "Pop"}</p>
             <p className="text-sm text-center font-medium">{formatDurationRow(songData.duration)}</p>
           </div>
+
+          {similarSongs.length > 0 && (
+            <div className="mt-10">
+              <h2 className="text-xl font-bold text-white mb-4">Bài hát tương tự</h2>
+              <div className="flex overflow-auto custom-scrollbar pb-4 gap-6">
+                {similarSongs.map((item) => (
+                  <SongItem
+                    key={item.id}
+                    id={item.id}
+                    name={item.title}
+                    desc={item.artist?.name}
+                    image={item.imageUrl}
+                    queue={similarSongs}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

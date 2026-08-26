@@ -2,8 +2,10 @@ package com.musify.backend.controller;
 
 import com.musify.backend.dto.request.SongUploadRequest;
 import com.musify.backend.dto.response.SongResponse;
+import com.musify.backend.security.CustomUserDetails;
 import com.musify.backend.service.SongService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -113,5 +115,20 @@ public class SongController {
     public String generateEmbeddings() {
         int count = songService.backfillEmbeddings();
         return "Da sinh embedding cho " + count + " bai hat";
+    }
+
+    @GetMapping("/{id}/similar")
+    public List<SongResponse> getSimilarSongs(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "6") int topK) {
+        return songService.getSimilarSongs(id, topK);
+    }
+
+    @GetMapping("/recommendations")
+    public List<SongResponse> getRecommendations(
+            @RequestParam(defaultValue = "10") int topK,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long userId = userDetails.getUser().getId();
+        return songService.getPersonalizedRecommendations(userId, topK);
     }
 }
