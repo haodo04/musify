@@ -47,8 +47,27 @@ public class ArtistService {
         return toResponse(artist);
     }
 
-    private ArtistResponse toResponse(Artist artist) {
+    public ArtistResponse toResponse(Artist artist) {
         return new ArtistResponse(artist.getId(), artist.getName(), artist.getAvatarUrl(), artist.getBannerUrl() ,artist.getBio());
+    }
+
+    @Transactional
+    public ArtistResponse updateArtist(Long id, ArtistRequest request) throws IOException {
+        Artist artist = artistRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay artist"));
+
+        if (request.getAvatarFile() != null && !request.getAvatarFile().isEmpty()) {
+            artist.setAvatarUrl(cloudinaryService.uploadImage(request.getAvatarFile()));
+        }
+        if (request.getBannerFile() != null && !request.getBannerFile().isEmpty()) {
+            artist.setBannerUrl(cloudinaryService.uploadImage(request.getBannerFile()));
+        }
+
+        artist.setName(request.getName());
+        artist.setBio(request.getBio());
+
+        artistRepository.save(artist);
+        return toResponse(artist);
     }
 
     @Transactional

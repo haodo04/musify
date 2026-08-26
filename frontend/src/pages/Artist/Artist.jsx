@@ -5,8 +5,10 @@ import AddToPlaylistModal from "../../components/modals/AddToPlaylistModal";
 import { PlayerContext } from "../../context/PlayerContext";
 import { AuthContext } from "../../context/AuthContext";
 import { FavoriteContext } from "../../context/FavoriteContext";
+import { FollowContext } from "../../context/FollowContext";
 import { getArtistById } from "../../services/artistService";
 import { getSongsByArtist } from "../../services/songService";
+import { getFollowerCount } from "../../services/followService";
 import { Play, Pause, Shuffle, MoreHorizontal, PlusCircle, Clock, X, Heart } from "lucide-react";
 
 const Artist = () => {
@@ -15,10 +17,11 @@ const Artist = () => {
   const { playWithId, track, playStatus } = useContext(PlayerContext);
   const { isAuthenticated } = useContext(AuthContext);
   const { isFavorite, toggleFavorite } = useContext(FavoriteContext);
+  const { isFollowing, toggleFollow } = useContext(FollowContext);
 
   const [artistData, setArtistData] = useState(null);
   const [songs, setSongs] = useState([]);
-  const [isFollowing, setIsFollowing] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
   const [bgColor, setBgColor] = useState("from-neutral-800");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [addToPlaylistSongId, setAddToPlaylistSongId] = useState(null);
@@ -42,6 +45,8 @@ const Artist = () => {
         setArtistData(artist);
         const artistSongs = await getSongsByArtist(id);
         setSongs(artistSongs || []);
+        const count = await getFollowerCount(id).catch(() => 0);
+        setFollowerCount(count);
       } catch (err) {
         console.error("Lỗi khi tải thông tin nghệ sĩ:", err);
         setArtistData(null);
@@ -74,12 +79,16 @@ const Artist = () => {
     }
   };
 
-  const handleFollowToggle = () => {
+  const handleFollowToggle = async () => {
     if (!isAuthenticated) {
       setShowAuthModal(true);
       return;
     }
-    setIsFollowing(!isFollowing);
+    const wasFollowing = isFollowing(Number(id));
+    const success = await toggleFollow(Number(id));
+    if (success) {
+      setFollowerCount((prev) => (wasFollowing ? Math.max(0, prev - 1) : prev + 1));
+    }
   };
 
   const handleSongClick = (songId) => {
@@ -160,7 +169,7 @@ const Artist = () => {
               </h1>
 
               <p className="text-xs md:text-sm font-medium text-white/80">
-                {artistData?.monthlyListeners || "2.485.120"} người nghe hàng tháng
+                {followerCount.toLocaleString("vi-VN")} người theo dõi
               </p>
             </div>
           </div>
@@ -191,12 +200,12 @@ const Artist = () => {
             <button
               onClick={handleFollowToggle}
               className={`px-5 py-2 rounded-full font-bold text-xs md:text-sm border transition-all hover:scale-105 cursor-pointer whitespace-nowrap ${
-                isFollowing 
+                isFollowing(Number(id))
                   ? "border-[#1db954] text-[#1db954] hover:border-white hover:text-white" 
                   : "border-[#727272] text-white hover:border-white"
               }`}
             >
-              {isFollowing ? "Đang theo dõi" : "Theo dõi"}
+              {isFollowing(Number(id)) ? "Đang theo dõi" : "Theo dõi"}
             </button>
 
             <MoreHorizontal className="w-8 h-8 text-[#a7a7a7] hover:text-white cursor-pointer transition" />

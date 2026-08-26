@@ -1,6 +1,6 @@
-import { Trash2 } from "lucide-react";
+import { Trash2, Pencil } from "lucide-react";
 
-export default function AlbumsTable({ filteredAlbums, onDeleteRequest }) {
+export default function AlbumsTable({ filteredAlbums, onDeleteRequest, onEditRequest }) {
   return (
     <div className="bg-[#121212] border border-[#1e1e1e] rounded-2xl overflow-hidden shadow-xl">
       <table className="w-full text-left text-sm text-[#b3b3b3]">
@@ -25,9 +25,14 @@ export default function AlbumsTable({ filteredAlbums, onDeleteRequest }) {
                 <td className="px-6 py-4 text-white font-medium">{album.artist?.name || "—"}</td>
                 <td className="px-6 py-4">{album.releaseDate || "Chưa cập nhật"}</td>
                 <td className="px-6 py-4 text-right">
-                  <button onClick={() => onDeleteRequest(album)} className="p-2 rounded-lg bg-[#282828] hover:bg-red-500 text-white transition" title="Xoá album">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center justify-end gap-2">
+                    <button onClick={() => onEditRequest(album)} className="p-2 rounded-lg bg-[#282828] hover:bg-[#1db954] hover:text-black text-white transition" title="Sửa album">
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => onDeleteRequest(album)} className="p-2 rounded-lg bg-[#282828] hover:bg-red-500 text-white transition" title="Xoá album">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))

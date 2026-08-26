@@ -9,6 +9,16 @@ export const createArtist = async ({ name, bio, avatarFile }) => {
   return res.data;
 };
 
+export const updateArtist = async (id, { name, bio, avatarFile, bannerFile }) => {
+  const form = new FormData();
+  form.append("name", name);
+  if (bio) form.append("bio", bio);
+  if (avatarFile) form.append("avatarFile", avatarFile);
+  if (bannerFile) form.append("bannerFile", bannerFile);
+  const res = await api.put(`/artists/${id}`, form);
+  return res.data;
+};
+
 export const getAllArtists = async () => {
   const res = await api.get("/artists");
   return res.data;
@@ -25,6 +35,16 @@ export const createAlbum = async ({ title, releaseDate, artistId, coverFile }) =
   if (releaseDate) form.append("releaseDate", releaseDate);
   if (coverFile) form.append("coverFile", coverFile);
   const res = await api.post("/albums", form);
+  return res.data;
+};
+
+export const updateAlbum = async (id, { title, releaseDate, artistId, coverFile }) => {
+  const form = new FormData();
+  form.append("title", title);
+  form.append("artistId", artistId);
+  if (releaseDate) form.append("releaseDate", releaseDate);
+  if (coverFile) form.append("coverFile", coverFile);
+  const res = await api.put(`/albums/${id}`, form);
   return res.data;
 };
 
@@ -47,6 +67,19 @@ export const createSong = async ({ title, genre, duration, artistId, albumId, au
   form.append("audioFile", audioFile);
   if (imageFile) form.append("imageFile", imageFile);
   const res = await api.post("/songs/upload", form);
+  return res.data;
+};
+
+export const updateSong = async (id, { title, genre, duration, artistId, albumId, audioFile, imageFile }) => {
+  const form = new FormData();
+  form.append("title", title);
+  form.append("genre", genre);
+  form.append("duration", duration);
+  form.append("artistId", artistId);
+  if (albumId) form.append("albumId", albumId);
+  if (audioFile) form.append("audioFile", audioFile);
+  if (imageFile) form.append("imageFile", imageFile);
+  const res = await api.put(`/songs/${id}`, form);
   return res.data;
 };
 

@@ -21,6 +21,11 @@ export const searchSongs = async (keyword) => {
   return res.data;
 };
 
+export const searchSemantic = async (query, topK = 8) => {
+  const res = await api.get(`/songs/search/semantic`, { params: { q: query, topK } });
+  return res.data;
+};
+
 export const getTrendingSongs = async () => {
   const res = await api.get("/songs/trending");
   return res.data;

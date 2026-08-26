@@ -53,4 +53,21 @@ public class AlbumController {
     public void deleteAlbum(@PathVariable Long id) {
         albumService.deleteAlbum(id);
     }
+
+    @PutMapping(value = "/{id}", consumes = "multipart/form-data")
+    public AlbumResponse updateAlbum(
+            @PathVariable Long id,
+            @RequestParam String title,
+            @RequestParam(required = false) String releaseDate,
+            @RequestParam Long artistId,
+            @RequestParam(required = false) MultipartFile coverFile) throws IOException {
+
+        AlbumRequest request = new AlbumRequest();
+        request.setTitle(title);
+        request.setReleaseDate(releaseDate != null ? LocalDate.parse(releaseDate) : null);
+        request.setArtistId(artistId);
+        request.setCoverFile(coverFile);
+
+        return albumService.updateAlbum(id, request);
+    }
 }

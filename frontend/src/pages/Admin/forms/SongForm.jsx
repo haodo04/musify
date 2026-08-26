@@ -1,17 +1,18 @@
 import { useState } from "react";
 import { UploadCloud, Image as ImageIcon } from "lucide-react";
-import { createSong } from "../../../services/adminService";
+import { createSong, updateSong } from "../../../services/adminService";
 
-export default function SongForm({ artists, albums, onSuccess }) {
-  const [title, setTitle] = useState("");
-  const [genre, setGenre] = useState("Pop");
-  const [duration, setDuration] = useState(""); 
-  const [artistId, setArtistId] = useState("");
-  const [albumId, setAlbumId] = useState("");
-  
+export default function SongForm({ artists, albums, song, onSuccess }) {
+  const isEdit = Boolean(song);
+  const [title, setTitle] = useState(song?.title || "");
+  const [genre, setGenre] = useState(song?.genre || "Pop");
+  const [duration, setDuration] = useState(song?.duration || "");
+  const [artistId, setArtistId] = useState(song?.artist?.id ? String(song.artist.id) : "");
+  const [albumId, setAlbumId] = useState(song?.albumId ? String(song.albumId) : "");
+
   const [audioFile, setAudioFile] = useState(null);
   const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [imagePreview, setImagePreview] = useState(song?.imageUrl || null);
   const [loading, setLoading] = useState(false);
 
   const handleAudioChange = (e) => {
@@ -35,21 +36,31 @@ export default function SongForm({ artists, albums, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title.trim() || !artistId || !audioFile) {
-      alert("Vui lòng nhập tên, chọn nghệ sĩ và đính kèm file nhạc!");
+    if (!title.trim() || !artistId || (!isEdit && !audioFile)) {
+      alert("Vui lòng nhập tên, chọn nghệ sĩ" + (!isEdit ? " và đính kèm file nhạc!" : "!"));
       return;
     }
     setLoading(true);
     try {
-      await createSong({ 
-        title, genre, 
-        duration: Number(duration),
-        artistId, albumId: albumId || null, 
-        audioFile, imageFile 
-      });
-      onSuccess("Upload bài hát lên hệ thống thành công!");
+      if (isEdit) {
+        await updateSong(song.id, {
+          title, genre,
+          duration: Number(duration),
+          artistId, albumId: albumId || null,
+          audioFile, imageFile,
+        });
+        onSuccess("Đã cập nhật bài hát!");
+      } else {
+        await createSong({
+          title, genre,
+          duration: Number(duration),
+          artistId, albumId: albumId || null,
+          audioFile, imageFile,
+        });
+        onSuccess("Upload bài hát lên hệ thống thành công!");
+      }
     } catch (err) {
-      alert("Lỗi khi tải bài hát lên");
+      alert(isEdit ? "Lỗi khi cập nhật bài hát" : "Lỗi khi tải bài hát lên");
     } finally {
       setLoading(false);
     }
@@ -81,8 +92,10 @@ export default function SongForm({ artists, albums, onSuccess }) {
             <input type="text" required value={title} onChange={e => setTitle(e.target.value)} placeholder="Tên bài hát..." className="w-full bg-[#242424] border border-[#333] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#1db954] transition" />
           </div>
           <div>
-            <label className="text-xs font-bold text-[#a7a7a7] uppercase mb-1.5 block">File Âm thanh (.mp3) *</label>
-            <input type="file" accept="audio/*" required onChange={handleAudioChange} className="w-full text-sm text-[#a7a7a7] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#1db954] file:text-black hover:file:bg-[#1ed760] file:cursor-pointer transition cursor-pointer" />
+            <label className="text-xs font-bold text-[#a7a7a7] uppercase mb-1.5 block">
+              File Âm thanh (.mp3) {isEdit ? <span className="normal-case font-normal text-[#666]">— để trống nếu giữ file cũ</span> : "*"}
+            </label>
+            <input type="file" accept="audio/*" required={!isEdit} onChange={handleAudioChange} className="w-full text-sm text-[#a7a7a7] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#1db954] file:text-black hover:file:bg-[#1ed760] file:cursor-pointer transition cursor-pointer" />
           </div>
         </div>
       </div>
@@ -112,15 +125,15 @@ export default function SongForm({ artists, albums, onSuccess }) {
           <input type="text" value={genre} onChange={e => setGenre(e.target.value)} className="w-full bg-[#242424] border border-[#333] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#1db954] transition" />
         </div>
         <div>
-          <label className="text-xs font-bold text-[#a7a7a7] uppercase mb-1.5 block">Thời lượng (Tự tính)</label>
+          <label className="text-xs font-bold text-[#a7a7a7] uppercase mb-1.5 block">Thời lượng {isEdit ? "" : "(Tự tính)"}</label>
           <input type="text" value={duration ? `${duration} giây` : "Đang chờ file nhạc..."} disabled className="w-full bg-[#181818] border border-[#333] rounded-xl px-4 py-3 text-sm outline-none text-[#a7a7a7] cursor-not-allowed" />
         </div>
       </div>
 
       <button type="submit" disabled={loading} className="w-full bg-[#1db954] text-black font-extrabold py-3.5 rounded-xl hover:bg-[#1ed760] transition hover:scale-[1.02] active:scale-95 disabled:opacity-50 mt-2 flex items-center justify-center gap-2">
         {loading ? (
-          <> <UploadCloud className="w-5 h-5 animate-bounce" /> Đang đẩy lên Cloudinary... </>
-        ) : "Xác nhận Upload Bài hát"}
+          <> <UploadCloud className="w-5 h-5 animate-bounce" /> {isEdit ? "Đang cập nhật..." : "Đang đẩy lên Cloudinary..."} </>
+        ) : isEdit ? "Lưu thay đổi" : "Xác nhận Upload Bài hát"}
       </button>
     </form>
   );

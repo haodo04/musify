@@ -72,9 +72,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/songs/**", "/api/albums/**", "/api/artists/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/follows/*/count").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/songs/*/play").permitAll()
 
                         .requestMatchers(HttpMethod.POST, "/api/songs/upload").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/songs/embeddings/generate").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/songs/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/songs/**").hasRole("ADMIN")
 

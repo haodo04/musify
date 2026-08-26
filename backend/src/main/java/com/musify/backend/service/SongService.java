@@ -9,13 +9,18 @@ import com.musify.backend.entity.Song;
 import com.musify.backend.repository.AlbumRepository;
 import com.musify.backend.repository.ArtistRepository;
 import com.musify.backend.repository.SongRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.util.AbstractMap;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +30,8 @@ public class SongService {
     private final CloudinaryService cloudinaryService;
     private final ArtistRepository artistRepository;
     private final AlbumRepository albumRepository;
+    private final GeminiEmbeddingService geminiEmbeddingService;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
 
     public SongResponse uploadSong(SongUploadRequest request) throws IOException {
@@ -52,6 +59,17 @@ public class SongService {
                 .build();
 
         songRepository.save(song);
+
+        // Sinh embedding tach rieng: neu Gemini loi, bai hat van da luu thanh cong
+        try {
+            String description = song.getTitle() + " " + artist.getName() + " " + song.getGenre();
+            List<Double> vector = geminiEmbeddingService.embed(description);
+            song.setEmbedding(objectMapper.writeValueAsString(vector));
+            songRepository.save(song);
+        } catch (Exception e) {
+            System.err.println("Loi sinh embedding cho bai hat id=" + song.getId() + ": " + e.getMessage());
+        }
+
         return toResponse(song);
     }
 
@@ -132,5 +150,112 @@ public class SongService {
         } catch (DataIntegrityViolationException e) {
             throw new RuntimeException("Không thể xoá bài hát này vì đang được dùng trong playlist hoặc danh sách yêu thích của người dùng");
         }
+    }
+
+    @Transactional
+    public SongResponse updateSong(Long id, SongUploadRequest request) throws IOException {
+        Song song = songRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay song"));
+
+        Artist artist = artistRepository.findById(request.getArtistId())
+                .orElseThrow(() -> new RuntimeException("Khong tim thay artist"));
+
+        Album album = null;
+        if (request.getAlbumId() != null) {
+            album = albumRepository.findById(request.getAlbumId())
+                    .orElseThrow(() -> new RuntimeException("Khong tim thay album"));
+        }
+
+        if (request.getAudioFile() != null && !request.getAudioFile().isEmpty()) {
+            song.setAudioUrl(cloudinaryService.uploadAudio(request.getAudioFile()));
+        }
+        if (request.getImageFile() != null && !request.getImageFile().isEmpty()) {
+            song.setImageUrl(cloudinaryService.uploadImage(request.getImageFile()));
+        }
+
+        song.setTitle(request.getTitle());
+        song.setGenre(request.getGenre());
+        song.setDuration(request.getDuration());
+        song.setArtist(artist);
+        song.setAlbum(album);
+
+        songRepository.save(song);
+
+        // Sinh lai embedding vi ten/nghe si/the loai co the da thay doi
+        try {
+            String description = song.getTitle() + " " + artist.getName() + " " + song.getGenre();
+            List<Double> vector = geminiEmbeddingService.embed(description);
+            song.setEmbedding(objectMapper.writeValueAsString(vector));
+            songRepository.save(song);
+        } catch (Exception e) {
+            System.err.println("Loi sinh lai embedding cho bai hat id=" + song.getId() + ": " + e.getMessage());
+        }
+
+        return toResponse(song);
+    }
+
+
+    public List<SongResponse> searchSemantic(String query, int topK) {
+        List<Double> queryVector = geminiEmbeddingService.embed(query);
+
+        List<Song> allSongs = songRepository.findAll();
+
+        return allSongs.stream()
+                .filter(song -> song.getEmbedding() != null && !song.getEmbedding().isBlank())
+                .map(song -> {
+                    List<Double> songVector = parseEmbedding(song.getEmbedding());
+                    double score = cosineSimilarity(queryVector, songVector);
+                    return new AbstractMap.SimpleEntry<>(song, score);
+                })
+                .sorted(Comparator.comparingDouble((Map.Entry<Song, Double> e) -> e.getValue()).reversed())
+                .limit(topK)
+                .map(entry -> toResponse(entry.getKey()))
+                .toList();
+    }
+
+
+    @Transactional
+    public int backfillEmbeddings() {
+        List<Song> songsWithoutEmbedding = songRepository.findAll().stream()
+                .filter(s -> s.getEmbedding() == null || s.getEmbedding().isBlank())
+                .toList();
+
+        int successCount = 0;
+        for (Song song : songsWithoutEmbedding) {
+            try {
+                String description = song.getTitle() + " " + song.getArtist().getName() + " " + song.getGenre();
+                List<Double> vector = geminiEmbeddingService.embed(description);
+                song.setEmbedding(objectMapper.writeValueAsString(vector));
+                songRepository.save(song);
+                successCount++;
+            } catch (Exception e) {
+                System.err.println("Bo qua bai hat id=" + song.getId() + ": " + e.getMessage());
+            }
+        }
+        return successCount;
+    }
+
+    private List<Double> parseEmbedding(String embeddingJson) {
+        try {
+            return objectMapper.readValue(embeddingJson, new TypeReference<List<Double>>() {});
+        } catch (Exception e) {
+            throw new RuntimeException("Loi doc du lieu embedding: " + e.getMessage(), e);
+        }
+    }
+
+    private double cosineSimilarity(List<Double> a, List<Double> b) {
+        if (a.size() != b.size()) {
+            return 0.0;
+        }
+        double dotProduct = 0.0, normA = 0.0, normB = 0.0;
+        for (int i = 0; i < a.size(); i++) {
+            dotProduct += a.get(i) * b.get(i);
+            normA += a.get(i) * a.get(i);
+            normB += b.get(i) * b.get(i);
+        }
+        if (normA == 0.0 || normB == 0.0) {
+            return 0.0;
+        }
+        return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
     }
 }

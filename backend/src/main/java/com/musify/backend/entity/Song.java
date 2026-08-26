@@ -36,4 +36,7 @@ public class Song {
     @Column(nullable = false)
     @Builder.Default
     private Long playCount = 0L;
+
+    @Column(columnDefinition = "TEXT")
+    private String embedding;
 }

@@ -81,6 +81,26 @@ public class AlbumService {
     }
 
     @Transactional
+    public AlbumResponse updateAlbum(Long id, AlbumRequest request) throws IOException {
+        Album album = albumRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay album"));
+
+        Artist artist = artistRepository.findById(request.getArtistId())
+                .orElseThrow(() -> new RuntimeException("Khong tim thay artist"));
+
+        if (request.getCoverFile() != null && !request.getCoverFile().isEmpty()) {
+            album.setCoverUrl(cloudinaryService.uploadImage(request.getCoverFile()));
+        }
+
+        album.setTitle(request.getTitle());
+        album.setReleaseDate(request.getReleaseDate());
+        album.setArtist(artist);
+
+        albumRepository.save(album);
+        return toResponse(album);
+    }
+
+    @Transactional
     public void deleteAlbum(Long id) {
         if (!albumRepository.existsById(id)) {
             throw new RuntimeException("Khong tim thay album");

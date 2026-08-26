@@ -42,6 +42,7 @@ export default function Admin() {
 
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [editTarget, setEditTarget] = useState(null);
 
   const showToast = (msg, type = "ok") => {
     setToast({ msg, type });
@@ -161,18 +162,21 @@ export default function Admin() {
                   filteredSongs={filteredSongs}
                   playWithId={playWithId}
                   onDeleteRequest={(song) => setDeleteTarget({ type: "song", item: song })}
+                  onEditRequest={(song) => setEditTarget({ type: "song", item: song })}
                 />
               )}
               {activeTab === "albums" && (
                 <AlbumsTable
                   filteredAlbums={filteredAlbums}
                   onDeleteRequest={(album) => setDeleteTarget({ type: "album", item: album })}
+                  onEditRequest={(album) => setEditTarget({ type: "album", item: album })}
                 />
               )}
               {activeTab === "artists" && (
                 <ArtistsTable
                   filteredArtists={filteredArtists}
                   onDeleteRequest={(artist) => setDeleteTarget({ type: "artist", item: artist })}
+                  onEditRequest={(artist) => setEditTarget({ type: "artist", item: artist })}
                 />
               )}
               {activeTab === "users" && (
@@ -191,6 +195,18 @@ export default function Admin() {
         {activeTab === "artists" && <ArtistForm onSuccess={(msg) => { showToast(msg); setModalOpen(false); loadData(); }} />}
         {activeTab === "albums" && <AlbumForm artists={artists} onSuccess={(msg) => { showToast(msg); setModalOpen(false); loadData(); }} />}
         {activeTab === "songs" && <SongForm artists={artists} albums={albums} onSuccess={(msg) => { showToast(msg); setModalOpen(false); loadData(); }} />}
+      </Modal>
+
+      <Modal open={Boolean(editTarget)} onClose={() => setEditTarget(null)} title={`Sửa ${editTarget ? DELETE_LABELS[editTarget.type].title : ""}`}>
+        {editTarget?.type === "artist" && (
+          <ArtistForm artist={editTarget.item} onSuccess={(msg) => { showToast(msg); setEditTarget(null); loadData(); }} />
+        )}
+        {editTarget?.type === "album" && (
+          <AlbumForm artists={artists} album={editTarget.item} onSuccess={(msg) => { showToast(msg); setEditTarget(null); loadData(); }} />
+        )}
+        {editTarget?.type === "song" && (
+          <SongForm artists={artists} albums={albums} song={editTarget.item} onSuccess={(msg) => { showToast(msg); setEditTarget(null); loadData(); }} />
+        )}
       </Modal>
 
       {deleteTarget && (

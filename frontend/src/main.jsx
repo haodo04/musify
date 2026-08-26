@@ -6,6 +6,7 @@ import { BrowserRouter } from "react-router-dom";
 import PlayerContextProvider from "./context/PlayerContext.jsx";
 import AuthContextProvider from "./context/AuthContext.jsx";
 import FavoriteContextProvider from "./context/FavoriteContext.jsx";
+import FollowContextProvider from "./context/FollowContext.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -13,7 +14,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <AuthContextProvider>
         <PlayerContextProvider>
           <FavoriteContextProvider>
-            <App />
+            <FollowContextProvider>
+              <App />
+            </FollowContextProvider>
           </FavoriteContextProvider>
         </PlayerContextProvider>
       </AuthContextProvider>

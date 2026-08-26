@@ -78,4 +78,40 @@ public class SongController {
     public void deleteSong(@PathVariable Long id) {
         songService.deleteSong(id);
     }
+
+    @PutMapping(value = "/{id}", consumes = "multipart/form-data")
+    public SongResponse updateSong(
+            @PathVariable Long id,
+            @RequestParam String title,
+            @RequestParam String genre,
+            @RequestParam Integer duration,
+            @RequestParam Long artistId,
+            @RequestParam(required = false) Long albumId,
+            @RequestParam(required = false) MultipartFile audioFile,
+            @RequestParam(required = false) MultipartFile imageFile) throws IOException {
+
+        SongUploadRequest request = new SongUploadRequest();
+        request.setTitle(title);
+        request.setGenre(genre);
+        request.setDuration(duration);
+        request.setArtistId(artistId);
+        request.setAlbumId(albumId);
+        request.setAudioFile(audioFile);
+        request.setImageFile(imageFile);
+
+        return songService.updateSong(id, request);
+    }
+
+    @GetMapping("/search/semantic")
+    public List<SongResponse> searchSemantic(
+            @RequestParam String q,
+            @RequestParam(defaultValue = "10") int topK) {
+        return songService.searchSemantic(q, topK);
+    }
+
+    @PostMapping("/embeddings/generate")
+    public String generateEmbeddings() {
+        int count = songService.backfillEmbeddings();
+        return "Da sinh embedding cho " + count + " bai hat";
+    }
 }

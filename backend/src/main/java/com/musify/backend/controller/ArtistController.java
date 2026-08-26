@@ -47,4 +47,21 @@ public class ArtistController {
     public void deleteArtist(@PathVariable Long id) {
         artistService.deleteArtist(id);
     }
+
+    @PutMapping(value = "/{id}", consumes = "multipart/form-data")
+    public ArtistResponse updateArtist(
+            @PathVariable Long id,
+            @RequestParam String name,
+            @RequestParam(required = false) String bio,
+            @RequestParam(required = false) MultipartFile avatarFile,
+            @RequestParam(required = false) MultipartFile bannerFile) throws IOException {
+
+        ArtistRequest request = new ArtistRequest();
+        request.setName(name);
+        request.setBio(bio);
+        request.setAvatarFile(avatarFile);
+        request.setBannerFile(bannerFile);
+
+        return artistService.updateArtist(id, request);
+    }
 }

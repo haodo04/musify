@@ -1,6 +1,6 @@
-import { Trash2 } from "lucide-react";
+import { Trash2, Pencil } from "lucide-react";
 
-export default function ArtistsTable({ filteredArtists, onDeleteRequest }) {
+export default function ArtistsTable({ filteredArtists, onDeleteRequest, onEditRequest }) {
   return (
     <div className="bg-[#121212] border border-[#1e1e1e] rounded-2xl overflow-hidden shadow-xl">
       <table className="w-full text-left text-sm text-[#b3b3b3]">
@@ -23,9 +23,14 @@ export default function ArtistsTable({ filteredArtists, onDeleteRequest }) {
                 </td>
                 <td className="px-6 py-4 max-w-md truncate">{artist.bio || "Chưa có thông tin mô tả."}</td>
                 <td className="px-6 py-4 text-right">
-                  <button onClick={() => onDeleteRequest(artist)} className="p-2 rounded-lg bg-[#282828] hover:bg-red-500 text-white transition" title="Xoá nghệ sĩ">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center justify-end gap-2">
+                    <button onClick={() => onEditRequest(artist)} className="p-2 rounded-lg bg-[#282828] hover:bg-[#1db954] hover:text-black text-white transition" title="Sửa nghệ sĩ">
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => onDeleteRequest(artist)} className="p-2 rounded-lg bg-[#282828] hover:bg-red-500 text-white transition" title="Xoá nghệ sĩ">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))

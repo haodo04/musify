@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { Image as ImageIcon } from "lucide-react";
-import { createAlbum } from "../../../services/adminService";
+import { createAlbum, updateAlbum } from "../../../services/adminService";
 
-export default function AlbumForm({ artists, onSuccess }) {
-  const [title, setTitle] = useState("");
-  const [releaseDate, setReleaseDate] = useState("");
-  const [artistId, setArtistId] = useState("");
+export default function AlbumForm({ artists, album, onSuccess }) {
+  const isEdit = Boolean(album);
+  const [title, setTitle] = useState(album?.title || "");
+  const [releaseDate, setReleaseDate] = useState(album?.releaseDate || "");
+  const [artistId, setArtistId] = useState(album?.artist?.id ? String(album.artist.id) : "");
   const [cover, setCover] = useState(null);
-  const [preview, setPreview] = useState(null);
+  const [preview, setPreview] = useState(album?.coverUrl || null);
   const [loading, setLoading] = useState(false);
 
   const handleImageChange = (e) => {
@@ -23,10 +24,15 @@ export default function AlbumForm({ artists, onSuccess }) {
     if (!title.trim() || !artistId) return;
     setLoading(true);
     try {
-      await createAlbum({ title, releaseDate, artistId, coverFile: cover });
-      onSuccess("Tạo Album mới thành công!");
+      if (isEdit) {
+        await updateAlbum(album.id, { title, releaseDate, artistId, coverFile: cover });
+        onSuccess("Đã cập nhật Album!");
+      } else {
+        await createAlbum({ title, releaseDate, artistId, coverFile: cover });
+        onSuccess("Tạo Album mới thành công!");
+      }
     } catch (err) {
-      alert("Lỗi khi tạo album");
+      alert(isEdit ? "Lỗi khi cập nhật album" : "Lỗi khi tạo album");
     } finally {
       setLoading(false);
     }
@@ -54,7 +60,9 @@ export default function AlbumForm({ artists, onSuccess }) {
       </div>
 
       <div>
-        <label className="text-xs font-bold text-[#a7a7a7] uppercase mb-1.5 block">Ảnh bìa (Cover)</label>
+        <label className="text-xs font-bold text-[#a7a7a7] uppercase mb-1.5 block">
+          Ảnh bìa (Cover) {isEdit && <span className="normal-case font-normal text-[#666]">— để trống nếu giữ ảnh cũ</span>}
+        </label>
         <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-[#3e3e3e] hover:border-[#1db954] rounded-2xl cursor-pointer bg-[#181818] transition relative overflow-hidden">
           {preview ? (
             <img src={preview} alt="preview" className="w-full h-full object-cover" />
@@ -69,7 +77,7 @@ export default function AlbumForm({ artists, onSuccess }) {
       </div>
 
       <button type="submit" disabled={loading} className="w-full bg-[#1db954] text-black font-extrabold py-3.5 rounded-xl hover:bg-[#1ed760] transition hover:scale-[1.02] active:scale-95 disabled:opacity-50 mt-2">
-        {loading ? "Đang xử lý..." : "Xác nhận Tạo Album"}
+        {loading ? "Đang xử lý..." : isEdit ? "Lưu thay đổi" : "Xác nhận Tạo Album"}
       </button>
     </form>
   );

@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { UploadCloud } from "lucide-react";
-import { createArtist } from "../../../services/adminService";
+import { createArtist, updateArtist } from "../../../services/adminService";
 
-export default function ArtistForm({ onSuccess }) {
-  const [name, setName] = useState("");
-  const [bio, setBio] = useState("");
+export default function ArtistForm({ artist, onSuccess }) {
+  const isEdit = Boolean(artist);
+  const [name, setName] = useState(artist?.name || "");
+  const [bio, setBio] = useState(artist?.bio || "");
   const [avatar, setAvatar] = useState(null);
-  const [preview, setPreview] = useState(null);
+  const [preview, setPreview] = useState(artist?.avatarUrl || null);
   const [loading, setLoading] = useState(false);
 
   const handleImageChange = (e) => {
@@ -22,10 +23,15 @@ export default function ArtistForm({ onSuccess }) {
     if (!name.trim()) return;
     setLoading(true);
     try {
-      await createArtist({ name, bio, avatarFile: avatar });
-      onSuccess("Đã thêm nghệ sĩ mới thành công!");
+      if (isEdit) {
+        await updateArtist(artist.id, { name, bio, avatarFile: avatar });
+        onSuccess("Đã cập nhật thông tin nghệ sĩ!");
+      } else {
+        await createArtist({ name, bio, avatarFile: avatar });
+        onSuccess("Đã thêm nghệ sĩ mới thành công!");
+      }
     } catch (err) {
-      alert("Lỗi khi thêm nghệ sĩ");
+      alert(isEdit ? "Lỗi khi cập nhật nghệ sĩ" : "Lỗi khi thêm nghệ sĩ");
     } finally {
       setLoading(false);
     }
@@ -44,7 +50,9 @@ export default function ArtistForm({ onSuccess }) {
       </div>
 
       <div>
-        <label className="text-xs font-bold text-[#a7a7a7] uppercase mb-1.5 block">Ảnh đại diện (Avatar)</label>
+        <label className="text-xs font-bold text-[#a7a7a7] uppercase mb-1.5 block">
+          Ảnh đại diện (Avatar) {isEdit && <span className="normal-case font-normal text-[#666]">— để trống nếu giữ ảnh cũ</span>}
+        </label>
         <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-[#3e3e3e] hover:border-[#1db954] rounded-2xl cursor-pointer bg-[#181818] transition relative overflow-hidden">
           {preview ? (
             <img src={preview} alt="preview" className="w-full h-full object-cover" />
@@ -59,7 +67,7 @@ export default function ArtistForm({ onSuccess }) {
       </div>
 
       <button type="submit" disabled={loading} className="w-full bg-[#1db954] text-black font-extrabold py-3.5 rounded-xl hover:bg-[#1ed760] transition hover:scale-[1.02] active:scale-95 disabled:opacity-50 mt-2">
-        {loading ? "Đang xử lý..." : "Xác nhận Thêm Nghệ sĩ"}
+        {loading ? "Đang xử lý..." : isEdit ? "Lưu thay đổi" : "Xác nhận Thêm Nghệ sĩ"}
       </button>
     </form>
   );
